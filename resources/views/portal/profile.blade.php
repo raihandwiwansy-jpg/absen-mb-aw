@@ -1,0 +1,114 @@
+@extends('layouts.app')
+
+@section('title', 'Profil Anggota')
+@section('breadcrumb')
+    <a href="{{ route('portal.dashboard') }}" class="hover:underline">Portal</a> &gt; Profil Saya
+@endsection
+
+@section('content')
+<div class="max-w-3xl mx-auto space-y-6">
+
+    {{-- Member ID Card Mockup (Digital ID) --}}
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#101D3B] via-[#202B40] to-[#101D3B] text-white p-6 lg:p-8 shadow-2xl border-2 border-[#C6A044]">
+        {{-- Card Watermark Logo --}}
+        <div class="absolute -right-12 -bottom-12 opacity-10 pointer-events-none">
+            <img src="{{ asset('logo.jpg') }}" class="w-64 h-64 rounded-full">
+        </div>
+
+        {{-- ID Card Header --}}
+        <div class="flex items-center justify-between pb-4 border-b border-[#C6A044]/30">
+            <div class="flex items-center gap-3">
+                <img src="{{ asset('logo.jpg') }}" alt="Logo" class="w-12 h-12 rounded-full border-2 border-[#C6A044]">
+                <div>
+                    <h3 class="text-sm font-black text-[#C6A044] tracking-widest uppercase">SYMPHONY MARCHING BAND</h3>
+                    <p class="text-[10px] text-white/60 tracking-wider">SMK AL WASLIYAH PERDAGANGAN • 2026</p>
+                </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-[#C6A044]/20 border border-[#C6A044] text-[10px] font-bold text-[#C6A044] tracking-widest uppercase">
+                KARTU ANGGOTA
+            </span>
+        </div>
+
+        {{-- Card Body --}}
+        <div class="my-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div class="w-28 h-28 rounded-2xl border-2 border-[#C6A044] p-1 bg-white/10 flex-shrink-0 shadow-lg">
+                @if($member->photo && file_exists(public_path('storage/' . $member->photo)))
+                    <img src="{{ asset('storage/' . $member->photo) }}" alt="{{ $member->full_name }}" class="w-full h-full rounded-xl object-cover">
+                @else
+                    <div class="w-full h-full rounded-xl bg-[#101D3B] flex items-center justify-center text-white text-3xl font-black">
+                        {{ strtoupper(substr($member->full_name, 0, 2)) }}
+                    </div>
+                @endif
+            </div>
+
+            <div class="flex-1 text-center sm:text-left space-y-2">
+                <div>
+                    <span class="text-[10px] text-white/50 uppercase tracking-widest block">Nama Lengkap</span>
+                    <h4 class="text-xl font-black text-white">{{ $member->full_name }}</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-1 text-xs">
+                    <div>
+                        <span class="text-[10px] text-white/50 uppercase tracking-widest block">ID Anggota</span>
+                        <span class="font-mono font-bold text-[#C6A044]">{{ $member->member_code }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-white/50 uppercase tracking-widest block">Kelas</span>
+                        <span class="font-semibold">{{ $member->class ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-white/50 uppercase tracking-widest block">Divisi</span>
+                        <span class="font-semibold">{{ $member->division->name ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-white/50 uppercase tracking-widest block">Instrumen</span>
+                        <span class="font-semibold">{{ $member->instrument->name ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ID Card Footer --}}
+        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-white/50">
+            <span>Bergabung: {{ $member->enrollment_date ? $member->enrollment_date->format('d/m/Y') : '-' }}</span>
+            <span class="font-bold text-emerald-400">STATUS: {{ strtoupper($member->status) }}</span>
+        </div>
+    </div>
+
+    {{-- Details Section --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8 space-y-4">
+        <h3 class="text-base font-bold text-[#101D3B] pb-3 border-b border-gray-100">Informasi Pribadi & Kontak</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+                <span class="text-gray-400 block mb-0.5">Alamat Email Login</span>
+                <span class="font-bold text-gray-800">{{ Auth::user()->email }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400 block mb-0.5">Nomor Telepon / WhatsApp</span>
+                <span class="font-bold text-gray-800">{{ $member->phone ?? 'Belum diisi' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400 block mb-0.5">Jenis Kelamin</span>
+                <span class="font-bold text-gray-800">{{ $member->gender_label }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400 block mb-0.5">Jabatan Organisasi</span>
+                <span class="font-bold text-gray-800">{{ $member->position->name ?? 'Anggota' }}</span>
+            </div>
+            <div class="md:col-span-2">
+                <span class="text-gray-400 block mb-0.5">Alamat Tempat Tinggal</span>
+                <span class="font-medium text-gray-800">{{ $member->address ?? '-' }}</span>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+            <span class="text-xs text-gray-400">Untuk perubahan data pribadi, silakan hubungi pengurus organisasi.</span>
+            <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#101D3B] hover:bg-[#1a2d57] transition shadow-sm">
+                Ubah Sandi Akun
+            </a>
+        </div>
+    </div>
+
+</div>
+@endsection
+
