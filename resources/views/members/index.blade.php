@@ -215,7 +215,8 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($members as $index => $member)
                             @php
-                                $photoUrl = $member->photo ? Storage::url($member->photo) : null;
+                                $effectivePhoto = $member->effective_photo;
+                                $photoUrl = $effectivePhoto ? asset('storage/' . $effectivePhoto) : null;
                                 $memberJson = [
                                     'id' => $member->id,
                                     'name' => $member->full_name,
@@ -225,7 +226,7 @@
                                     'division_color' => $member->division->color ?? '#101D3B',
                                     'instrument' => $member->instrument?->name ?? 'Belum Ditentukan',
                                     'position' => $member->position?->name ?? 'Anggota',
-                                    'phone' => $member->phone ?? '-',
+                                    'phone' => $member->effective_phone ?? '-',
                                     'email' => $member->user?->email ?? '-',
                                     'password' => $isAdmin ? ($member->user?->plain_password ?? ($member->user ? 'password' : '-')) : null,
                                     'gender' => $member->gender === 'L' || $member->gender === 'male' ? 'Laki-laki' : 'Perempuan',
@@ -269,8 +270,8 @@
                                             @if($member->user?->email)
                                                 <span class="font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">✉️ {{ $member->user->email }}</span>
                                             @endif
-                                            @if($member->phone)
-                                                <span class="font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">📞 {{ $member->phone }}</span>
+                                            @if($member->effective_phone)
+                                                <span class="font-mono text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">📞 {{ $member->effective_phone }}</span>
                                             @endif
                                             <span class="font-mono font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
                                                 🔑 PW: {{ $member->user?->plain_password ?? ($member->user ? 'password' : '-') }}

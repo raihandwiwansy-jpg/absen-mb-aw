@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Member extends Model
 {
@@ -133,15 +134,44 @@ class Member extends Model
     }
 
     /**
+     * Get the resolved relative storage path for the member's photo.
+     */
+    public function getEffectivePhotoAttribute(): ?string
+    {
+        $candidates = array_filter([
+            $this->photo,
+            $this->user?->photo,
+        ]);
+
+        foreach ($candidates as $path) {
+            if (Storage::disk('public')->exists($path) || file_exists(public_path('storage/'.$path))) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get the photo URL or a default avatar.
      */
     public function getPhotoUrlAttribute(): string
     {
-        if ($this->photo && file_exists(public_path('storage/'.$this->photo))) {
-            return asset('storage/'.$this->photo);
+        $path = $this->effective_photo;
+
+        if ($path) {
+            return asset('storage/'.$path);
         }
 
-        return asset('images/default-avatar.png');
+        return asset('logo.jpg');
+    }
+
+    /**
+     * Get the effective phone number, falling back to linked user phone.
+     */
+    public function getEffectivePhoneAttribute(): ?string
+    {
+        return $this->phone ?: $this->user?->phone;
     }
 
     /**

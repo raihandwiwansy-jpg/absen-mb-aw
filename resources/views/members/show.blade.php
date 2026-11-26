@@ -6,7 +6,11 @@
 @endsection
 
 @section('content')
-<div class="space-y-6">
+@php
+    $memberEffectivePhoto = $member->effective_photo;
+    $memberPhotoUrl = $memberEffectivePhoto ? asset('storage/' . $memberEffectivePhoto) : null;
+@endphp
+<div class="space-y-6" x-data="{ showPhotoModal: false }">
 
     {{-- Header Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -31,8 +35,12 @@
         {{-- Left Profile Card --}}
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center">
             <div class="relative w-32 h-32 rounded-full border-4 border-[#C6A044] p-1 bg-white shadow-md mb-4">
-                @if($member->photo && file_exists(public_path('storage/' . $member->photo)))
-                    <img src="{{ asset('storage/' . $member->photo) }}" alt="{{ $member->full_name }}" class="w-full h-full rounded-full object-cover">
+                @if($memberPhotoUrl)
+                    <img src="{{ $memberPhotoUrl }}"
+                         alt="{{ $member->full_name }}"
+                         @click="showPhotoModal = true"
+                         title="Klik untuk memperbesar foto"
+                         class="w-full h-full rounded-full object-cover cursor-pointer hover:scale-105 transition">
                 @else
                     <div class="w-full h-full rounded-full bg-[#101D3B] flex items-center justify-center text-white text-3xl font-bold">
                         {{ strtoupper(substr($member->full_name, 0, 2)) }}
@@ -67,7 +75,7 @@
                 </div>
                 <div>
                     <span class="text-gray-400 block">Kontak</span>
-                    <span class="font-semibold text-gray-800">{{ $member->phone ?? '-' }}</span>
+                    <span class="font-semibold text-gray-800">{{ $member->effective_phone ?? '-' }}</span>
                 </div>
                 <div>
                     <span class="text-gray-400 block">Tingkat Kehadiran</span>
@@ -228,6 +236,31 @@
         </div>
 
     </div>
+
+    @if($memberPhotoUrl)
+    {{-- Photo Zoom Modal --}}
+    <div x-show="showPhotoModal"
+         x-transition
+         @keydown.window.escape="showPhotoModal = false"
+         @click="showPhotoModal = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+         style="display: none;">
+        <div @click.stop class="relative max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl border-2 border-[#C6A044]">
+            <div class="p-4 bg-[#101D3B] text-white flex items-center justify-between">
+                <div>
+                    <h4 class="font-bold text-sm">{{ $member->full_name }}</h4>
+                    <p class="text-[11px] font-mono text-[#C6A044]">{{ $member->member_code }}</p>
+                </div>
+                <button type="button" @click="showPhotoModal = false" class="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 bg-gray-50 flex items-center justify-center">
+                <img src="{{ $memberPhotoUrl }}" alt="{{ $member->full_name }}" class="max-h-[70vh] w-auto rounded-2xl object-contain shadow">
+            </div>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection

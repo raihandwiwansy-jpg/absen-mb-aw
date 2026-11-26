@@ -46,10 +46,13 @@
     {{-- Member Hero Card --}}
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#101D3B] via-[#202B40] to-[#101D3B] p-6 lg:p-8 text-white shadow-2xl border border-[#C6A044]/30">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            @php
+                $heroMemberPhoto = $member->effective_photo;
+            @endphp
             <div class="flex items-center gap-5">
                 <div class="relative w-20 h-20 rounded-full border-2 border-[#C6A044] p-1 bg-white/10 shadow-xl flex-shrink-0">
-                    @if($member->photo && file_exists(public_path('storage/' . $member->photo)))
-                        <img src="{{ asset('storage/' . $member->photo) }}" alt="{{ $member->full_name }}" class="w-full h-full rounded-full object-cover">
+                    @if($heroMemberPhoto)
+                        <img src="{{ asset('storage/' . $heroMemberPhoto) }}" alt="{{ $member->full_name }}" class="w-full h-full rounded-full object-cover">
                     @else
                         <div class="w-full h-full rounded-full bg-[#101D3B] flex items-center justify-center text-[#C6A044] text-2xl font-black">
                             {{ strtoupper(substr($member->full_name, 0, 2)) }}
@@ -109,8 +112,8 @@
                 {{-- Card Content --}}
                 <div class="mt-5 flex items-center gap-4">
                     <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#C6A044] shadow-md flex-shrink-0 bg-white/10">
-                        @if($member->photo && file_exists(public_path('storage/' . $member->photo)))
-                            <img src="{{ asset('storage/' . $member->photo) }}" alt="{{ $member->full_name }}" class="w-full h-full object-cover">
+                        @if($heroMemberPhoto)
+                            <img src="{{ asset('storage/' . $heroMemberPhoto) }}" alt="{{ $member->full_name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center font-black text-xl text-[#C6A044]">
                                 {{ strtoupper(substr($member->full_name, 0, 2)) }}

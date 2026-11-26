@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -27,6 +28,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'photo',
+        'phone',
         'password',
         'plain_password',
     ];
@@ -116,5 +119,42 @@ class User extends Authenticatable
     public function getIsMemberRoleAttribute(): bool
     {
         return $this->hasRole('member');
+    }
+
+    /**
+     * Get the resolved relative storage path for the user's profile photo.
+     */
+    public function getEffectivePhotoAttribute(): ?string
+    {
+        $candidates = array_filter([
+            $this->photo,
+            $this->member?->photo,
+        ]);
+
+        foreach ($candidates as $path) {
+            if (Storage::disk('public')->exists($path) || file_exists(public_path('storage/'.$path))) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the public URL for the user's profile photo, or null if none exists.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        $path = $this->effective_photo;
+
+        return $path ? asset('storage/'.$path) : null;
+    }
+
+    /**
+     * Get the user's phone number, falling back to linked member phone.
+     */
+    public function getEffectivePhoneAttribute(): ?string
+    {
+        return $this->phone ?: $this->member?->phone;
     }
 }

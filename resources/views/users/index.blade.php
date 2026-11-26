@@ -61,9 +61,13 @@
                     @forelse($users as $usr)
                     <tr class="hover:bg-gray-50/50">
                         <td class="p-4 font-bold text-[#101D3B] flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-[#101D3B] text-[#C6A044] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                {{ strtoupper(substr($usr->name, 0, 1)) }}
-                            </div>
+                            @if($usr->photo_url)
+                                <img src="{{ $usr->photo_url }}" alt="{{ $usr->name }}" class="w-8 h-8 rounded-full object-cover ring-2 ring-[#C6A044]/40 flex-shrink-0">
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-[#101D3B] text-[#C6A044] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                    {{ strtoupper(substr($usr->name, 0, 1)) }}
+                                </div>
+                            @endif
                             <span>{{ $usr->name }}</span>
                         </td>
                         <td class="p-4 font-mono text-gray-600">

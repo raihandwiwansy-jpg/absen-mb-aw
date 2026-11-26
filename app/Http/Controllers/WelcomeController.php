@@ -8,6 +8,7 @@ use App\Models\Instrument;
 use App\Models\Member;
 use App\Models\OrganizationalPeriod;
 use App\Models\PracticeSchedule;
+use Carbon\Carbon;
 use Illuminate\View\View;
 
 class WelcomeController extends Controller
@@ -56,7 +57,28 @@ class WelcomeController extends Controller
             ->limit(3)
             ->get();
 
-        // 3. Active Attendance Session (if any session is open right now)
+        // 3. Active Attendance Session — only show banner if still within practice end_time.
+        // Auto-close stale sessions whose schedule end time has already passed.
+        $staleSessions = AttendanceSession::where('is_active', true)
+            ->with(['practiceSchedule'])
+            ->get()
+            ->filter(function ($session) {
+                $schedule = $session->practiceSchedule;
+                if (! $schedule) {
+                    return true; // no schedule linked → treat as stale
+                }
+
+                $endDateTime = Carbon::parse(
+                    $schedule->date->format('Y-m-d').' '.$schedule->end_time
+                );
+
+                return now()->isAfter($endDateTime);
+            });
+
+        foreach ($staleSessions as $stale) {
+            $stale->update(['is_active' => false, 'closed_at' => now()]);
+        }
+
         $activeSession = AttendanceSession::where('is_active', true)
             ->with(['practiceSchedule'])
             ->first();

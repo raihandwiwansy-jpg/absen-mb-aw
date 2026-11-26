@@ -28,7 +28,7 @@ class UpdateMemberRequest extends FormRequest
             'class' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:1000'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'photo' => ['nullable', 'file', 'mimetypes:image/*', 'max:51200'],
             'enrollment_date' => ['required', 'date'],
             'division_id' => ['nullable', 'exists:divisions,id'],
             'instrument_id' => ['nullable', 'exists:instruments,id'],
@@ -76,8 +76,8 @@ class UpdateMemberRequest extends FormRequest
             'enrollment_date.required' => 'Tanggal bergabung wajib diisi.',
             'status.required' => 'Status wajib dipilih.',
             'status.in' => 'Status tidak valid.',
-            'photo.image' => 'File foto harus berupa gambar.',
-            'photo.max' => 'Ukuran foto maksimal 2MB.',
+            'photo.mimetypes' => 'File foto harus berupa gambar.',
+            'photo.max' => 'Ukuran foto maksimal 50MB.',
         ];
     }
 }

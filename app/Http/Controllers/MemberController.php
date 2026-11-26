@@ -186,10 +186,18 @@ class MemberController extends Controller
         $photoPath = $member->photo;
 
         if ($request->hasFile('photo')) {
-            if ($member->photo) {
-                Storage::disk('public')->delete($member->photo);
-            }
+            $oldPaths = array_unique(array_filter([
+                $member->photo,
+                $member->user?->photo,
+            ]));
+
             $photoPath = $request->file('photo')->store('members/photos', 'public');
+
+            foreach ($oldPaths as $oldPath) {
+                if ($oldPath !== $photoPath) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
         }
 
         $member->update([
@@ -205,8 +213,16 @@ class MemberController extends Controller
             'position_id' => $request->position_id,
             'organizational_period_id' => $request->organizational_period_id,
             'status' => $request->status,
-            'user_id' => $request->user_id,
+            'user_id' => $request->has('user_id') ? $request->user_id : $member->user_id,
         ]);
+
+        if ($member->user) {
+            $userSync = ['phone' => $request->phone];
+            if ($request->hasFile('photo')) {
+                $userSync['photo'] = $photoPath;
+            }
+            $member->user->update($userSync);
+        }
 
         ActivityLog::create([
             'user_id' => auth()->id(),

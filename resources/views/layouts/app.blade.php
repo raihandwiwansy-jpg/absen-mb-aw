@@ -46,6 +46,7 @@
     $currentUser = Auth::user();
     $isStaff = $currentUser && $currentUser->hasAnyRole(['super_admin', 'administrator', 'attendance_officer', 'coach']);
     $homeRoute = $isStaff ? route('dashboard') : route('portal.dashboard');
+    $navPhotoUrl = $currentUser?->photo_url;
 @endphp
 <body class="h-full" x-data="symphonyApp()">
 
@@ -279,9 +280,9 @@
                    class="sidebar-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
-                    <span class="nav-label" x-show="!sidebarCollapsed || isMobile">Ubah Kata Sandi</span>
+                    <span class="nav-label" x-show="!sidebarCollapsed || isMobile">Edit Profil & Sandi</span>
                 </a>
             </div>
         @endif
@@ -291,17 +292,23 @@
     <div class="p-3 border-t border-white/10 mt-auto bg-black/20"
          x-show="!sidebarCollapsed || isMobile">
         <div class="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10 hover:border-gold/30 transition-all">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center flex-shrink-0 shadow-md ring-2 ring-gold/30">
-                    <span class="text-navy text-xs font-black">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                    </span>
-                </div>
+            <a href="{{ $isStaff ? route('profile.edit') : route('portal.profile') }}" class="flex items-center gap-2.5 min-w-0 flex-1 group">
+                @if($navPhotoUrl)
+                    <img src="{{ $navPhotoUrl }}"
+                         alt="{{ Auth::user()->name ?? 'User' }}"
+                         class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-md ring-2 ring-gold/50 group-hover:ring-gold transition">
+                @else
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center flex-shrink-0 shadow-md ring-2 ring-gold/30">
+                        <span class="text-navy text-xs font-black">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                        </span>
+                    </div>
+                @endif
                 <div class="overflow-hidden min-w-0">
-                    <p class="text-white text-xs font-bold truncate">{{ Auth::user()->name ?? 'User' }}</p>
-                    <p class="text-gold/80 text-[10px] truncate capitalize">{{ Auth::user()->getRoleNames()->first() ?? 'Member' }}</p>
+                    <p class="text-white text-xs font-bold truncate group-hover:text-gold transition-colors">{{ Auth::user()->name ?? 'User' }}</p>
+                    <p class="text-gold/80 text-[10px] truncate capitalize">{{ str_replace('_', ' ', Auth::user()->getRoleNames()->first() ?? 'Member') }}</p>
                 </div>
-            </div>
+            </a>
             <form method="POST" action="{{ route('logout') }}" class="flex-shrink-0">
                 @csrf
                 <button type="submit"
@@ -457,11 +464,17 @@
                 <button @click="open = !open" @click.outside="open = false"
                         class="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-3 sm:pr-4 sm:py-1.5 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                     <!-- Avatar -->
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-navy flex items-center justify-center flex-shrink-0 ring-1 ring-gold/40">
-                        <span class="text-gold text-xs font-bold">
-                            {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                        </span>
-                    </div>
+                    @if($navPhotoUrl)
+                        <img src="{{ $navPhotoUrl }}"
+                             alt="{{ Auth::user()->name ?? 'User' }}"
+                             class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-gold/50">
+                    @else
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-navy flex items-center justify-center flex-shrink-0 ring-1 ring-gold/40">
+                            <span class="text-gold text-xs font-bold">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                            </span>
+                        </div>
+                    @endif
                     <div class="hidden sm:block text-left">
                         <p class="text-xs font-semibold text-navy">{{ Auth::user()->name ?? 'User' }}</p>
                         <p class="text-[10px] text-gray-400">{{ Auth::user()->email ?? '' }}</p>

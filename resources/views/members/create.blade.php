@@ -87,7 +87,7 @@
                                     <input type="file" name="photo" class="hidden" accept="image/*"
                                         @change="previewPhoto($event)">
                                 </label>
-                                <p class="mt-2 text-xs text-gray-400">JPG, PNG, GIF hingga 2MB.</p>
+                                <p class="mt-2 text-xs text-gray-400">Bebas format gambar apa saja (JPG, PNG, WEBP, GIF, dll).</p>
                                 @error('photo')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror

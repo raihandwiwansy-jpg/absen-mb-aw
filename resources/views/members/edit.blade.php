@@ -120,10 +120,29 @@
                 </div>
 
                 {{-- Photo --}}
-                <div>
+                @php
+                    $existingMemberPhotoUrl = $member->effective_photo ? asset('storage/' . $member->effective_photo) : null;
+                @endphp
+                <div x-data="{ photoPreview: @js($existingMemberPhotoUrl) }">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Foto Profil</label>
-                    <input type="file" name="photo" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D3B]/10 file:text-[#101D3B] hover:file:bg-[#101D3B]/20">
-                    <p class="text-[11px] text-gray-400 mt-1">Format: JPG, PNG maks. 2MB. Biarkan kosong jika tidak diubah.</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full border-2 border-[#C6A044] p-0.5 bg-gray-50 flex-shrink-0 overflow-hidden shadow-sm">
+                            <template x-if="photoPreview">
+                                <img :src="photoPreview" alt="{{ $member->full_name }}" class="w-full h-full rounded-full object-cover">
+                            </template>
+                            <template x-if="!photoPreview">
+                                <div class="w-full h-full rounded-full bg-[#101D3B] flex items-center justify-center text-white text-sm font-bold">
+                                    {{ strtoupper(substr($member->full_name, 0, 2)) }}
+                                </div>
+                            </template>
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" name="photo" accept="image/*"
+                                   @change="if ($event.target.files[0]) { const r = new FileReader(); r.onload = e => photoPreview = e.target.result; r.readAsDataURL($event.target.files[0]); }"
+                                   class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D3B]/10 file:text-[#101D3B] hover:file:bg-[#101D3B]/20">
+                            <p class="text-[11px] text-gray-400 mt-1">Bebas format gambar apa saja (JPG, PNG, WEBP, dll). Biarkan kosong jika tidak diubah.</p>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Address --}}

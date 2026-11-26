@@ -48,27 +48,85 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 
+    <style>
+        /* ── Auth Portal Background ───────────────────────────────── */
+        @keyframes authSpinCW  { to { transform: translate(-50%,-50%) rotate(360deg); } }
+        @keyframes authSpinCCW { to { transform: translate(-50%,-50%) rotate(-360deg); } }
+        @keyframes authGlow    { 0%,100%{opacity:.06;}50%{opacity:.16;} }
+        @keyframes authFloat   {
+            0%  {transform:translate3d(0,0,0) scale(.92);opacity:0;}
+            18% {opacity:1;}82%{opacity:1;}
+            100%{transform:translate3d(14px,-110px,0) scale(1.06);opacity:0;}
+        }
+        @keyframes authFloat2  {
+            0%  {transform:translate3d(0,0,0);opacity:0;}
+            22% {opacity:1;}78%{opacity:1;}
+            100%{transform:translate3d(-18px,-130px,0);opacity:0;}
+        }
+        @keyframes authStar    { 0%,100%{opacity:.06;}50%{opacity:.5;} }
+
+        .auth-portal-wrap { position:fixed;top:50%;left:50%;pointer-events:none;z-index:0; }
+        .auth-ring {
+            position:absolute;border-radius:50%;border:1px solid rgba(198,160,68,.09);
+            will-change:transform;top:0;left:0;
+        }
+        .auth-ring-1{width:300px;height:300px;margin:-150px 0 0 -150px;animation:authSpinCW 26s linear infinite;border-color:rgba(198,160,68,.13);}
+        .auth-ring-1::before,.auth-ring-1::after{content:'';position:absolute;width:5px;height:5px;border-radius:50%;background:#C6A044;top:50%;left:-2.5px;margin-top:-2.5px;box-shadow:0 0 6px #C6A044;}
+        .auth-ring-1::after{left:auto;right:-2.5px;background:#E5C368;}
+        .auth-ring-2{width:500px;height:500px;margin:-250px 0 0 -250px;animation:authSpinCCW 40s linear infinite;border-color:rgba(198,160,68,.06);}
+        .auth-ring-3{width:720px;height:720px;margin:-360px 0 0 -360px;animation:authSpinCW 65s linear infinite;border-color:rgba(255,255,255,.035);}
+
+        .auth-amb { position:fixed;border-radius:50%;pointer-events:none;will-change:opacity;animation:authGlow 5s ease-in-out infinite; }
+        .auth-amb-1{width:420px;height:420px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(198,160,68,.28) 0%,transparent 65%);}
+        .auth-amb-2{width:380px;height:380px;bottom:-100px;right:-80px;background:radial-gradient(circle,rgba(28,52,120,.45) 0%,transparent 65%);animation-delay:2.5s;}
+
+        .auth-fi-a{animation:authFloat  8s ease-in-out infinite;will-change:transform,opacity;}
+        .auth-fi-b{animation:authFloat2 9.5s ease-in-out 1.6s infinite;will-change:transform,opacity;}
+        .auth-fi-c{animation:authFloat  11s ease-in-out 3.2s infinite;will-change:transform,opacity;}
+        .auth-star{animation:authStar 3.5s ease-in-out infinite;will-change:opacity;}
+
+        @media(prefers-reduced-motion:reduce){
+            .auth-ring,.auth-amb,.auth-fi-a,.auth-fi-b,.auth-fi-c,.auth-star{animation:none!important;}
+        }
+    </style>
+
     @stack('styles')
 </head>
 <body class="min-h-full auth-bg text-gray-800 dark:text-gray-100 flex flex-col justify-between selection:bg-[#C6A044] selection:text-[#101D3B] relative overflow-x-hidden"
       x-data="{ isDark: document.documentElement.classList.contains('dark') }">
 
     <!-- ============================================================
-         BACKGROUND DECORATIVE AURORAS & MARCHING BAND ELEMENTS
+         BACKGROUND — Portal rings + glows + instruments + stars
          ============================================================ -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
-        <!-- Golden radial glows -->
-        <div class="absolute -top-40 -left-40 w-[550px] h-[550px] bg-[#C6A044]/15 rounded-full blur-[140px]"></div>
-        <div class="absolute -bottom-40 -right-40 w-[550px] h-[550px] bg-[#1a2d57]/40 dark:bg-[#C6A044]/10 rounded-full blur-[140px]"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#101D3B]/40 dark:bg-black/40 rounded-full blur-[160px]"></div>
 
-        <!-- Floating ambient musical notes -->
-        <div class="absolute top-16 left-[10%] text-[#C6A044]/30 text-2xl select-none animate-note-1">♩</div>
-        <div class="absolute top-1/3 left-[5%] text-[#C6A044]/25 text-3xl select-none animate-note-2">♫</div>
-        <div class="absolute bottom-20 left-[18%] text-[#C6A044]/30 text-xl select-none animate-note-3">♪</div>
-        <div class="absolute top-24 right-[12%] text-[#C6A044]/30 text-3xl select-none animate-note-2">♬</div>
-        <div class="absolute bottom-32 right-[8%] text-[#C6A044]/25 text-2xl select-none animate-note-1">♩</div>
-        <div class="absolute top-2/3 right-[15%] text-[#C6A044]/30 text-4xl select-none animate-note-3">𝄞</div>
+        <!-- Dot grid -->
+        <div class="absolute inset-0" style="background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;"></div>
+
+        <!-- Ambient glows -->
+        <div class="auth-amb auth-amb-1"></div>
+        <div class="auth-amb auth-amb-2"></div>
+
+        <!-- Portal rings (centered) -->
+        <div class="auth-portal-wrap">
+            <div class="auth-ring auth-ring-1"></div>
+            <div class="auth-ring auth-ring-2"></div>
+            <div class="auth-ring auth-ring-3"></div>
+        </div>
+
+        <!-- Floating instruments -->
+        <div class="absolute top-[14%] left-[5%]  text-3xl select-none auth-fi-a opacity-25">🎺</div>
+        <div class="absolute top-[42%] left-[10%] text-4xl select-none auth-fi-b opacity-20">🥁</div>
+        <div class="absolute top-[70%] left-[7%]  text-2xl select-none auth-fi-c opacity-18">🎷</div>
+        <div class="absolute top-[18%] right-[7%] text-4xl select-none auth-fi-b opacity-22">🎻</div>
+        <div class="absolute top-[55%] right-[9%] text-3xl select-none auth-fi-a opacity-18">𝄞</div>
+        <div class="absolute top-[80%] right-[6%] text-2xl select-none auth-fi-c opacity-20">♬</div>
+
+        <!-- Star dots -->
+        <div class="auth-star absolute w-1   h-1   rounded-full bg-white      top-[12%] left-[30%]" style="animation-delay:.5s"></div>
+        <div class="auth-star absolute w-1.5 h-1.5 rounded-full bg-amber-200 top-[35%] left-[55%]" style="animation-delay:1.3s"></div>
+        <div class="auth-star absolute w-1   h-1   rounded-full bg-white      top-[60%] left-[25%]" style="animation-delay:2.1s"></div>
+        <div class="auth-star absolute w-1   h-1   rounded-full bg-white      top-[80%] left-[65%]" style="animation-delay:3.4s"></div>
     </div>
 
     <!-- ============================================================
