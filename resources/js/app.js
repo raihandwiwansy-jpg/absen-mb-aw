@@ -107,7 +107,7 @@ function ensureToastContainer() {
     if (!toastContainer || !document.body.contains(toastContainer)) {
         toastContainer = document.createElement('div');
         toastContainer.id = 'symphony-toast-container';
-        toastContainer.className = 'fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full px-4 sm:px-0';
+        toastContainer.className = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 z-[9999] flex flex-col gap-2.5 pointer-events-none sm:max-w-sm sm:w-full';
         document.body.appendChild(toastContainer);
     }
     return toastContainer;
@@ -234,6 +234,7 @@ window.animateNumber = function (el, targetValue, durationMs = 1200, suffix = ''
 
 window.animateAllCounters = function () {
     const counterElements = document.querySelectorAll('[data-counter]');
+    if (counterElements.length === 0) return;
     counterElements.forEach(el => {
         const target = parseFloat(el.getAttribute('data-counter')) || 0;
         const suffix = el.getAttribute('data-counter-suffix') || '';

@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <a href="{{ route('attendance.scan') }}"
                    class="btn-gold inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm shadow-xl hover:shadow-2xl transition pulse-ring-gold"
                    style="background-color: #C6A044; color: #101D3B;">
@@ -97,7 +97,7 @@
             <div>
                 {{-- Header of ID Card --}}
                 <div class="flex items-center justify-between border-b border-white/15 pb-4">
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                         <img src="{{ asset('logo.jpg') }}" alt="Symphony Logo" class="w-12 h-12 rounded-full border border-[#C6A044]">
                         <div>
                             <h3 class="text-xs font-black tracking-widest text-[#C6A044] uppercase">SYMPHONY MARCHING BAND</h3>
@@ -204,7 +204,7 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                        <a href="{{ route('permission-requests.create') }}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
+                        <a href="{{ route('permission-requests.create', ['practice_schedule_id' => $sched->id]) }}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
                             Minta Izin
                         </a>
                     </div>
@@ -235,7 +235,7 @@
                             {{ $att->attendanceSession->practiceSchedule->title ?? 'Sesi Latihan' }}
                         </span>
                         <span class="text-[11px] text-gray-400">
-                            {{ $att->attendanceSession->practiceSchedule->date->format('d M Y') ?? '-' }}
+                            {{ $att->attendanceSession?->practiceSchedule?->date?->format('d M Y') ?? '-' }}
                             @if($att->check_in_time)
                                 • Masuk pukul {{ $att->check_in_time->format('H:i') }} WIB
                             @endif

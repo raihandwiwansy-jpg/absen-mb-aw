@@ -45,6 +45,19 @@
     .fc .fc-event:hover {
         transform: scale(1.02);
     }
+    @media (max-width: 640px) {
+        .fc .fc-toolbar {
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+        }
+        .fc .fc-toolbar-title {
+            font-size: 0.95rem !important;
+        }
+        .fc .fc-button-primary {
+            padding: 0.3rem 0.55rem !important;
+            font-size: 0.7rem !important;
+        }
+    }
 </style>
 @endpush
 
@@ -64,7 +77,8 @@
             });
         }
     }
-}">
+}"
+@calendar-event-selected.window="selectedEvent = $event.detail; showEventModal = true">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -211,20 +225,20 @@
     </div>
 
     {{-- TAB 2: INTERACTIVE FULLCALENDAR VIEW --}}
-    <div x-show="activeTab === 'calendar'" style="display: none;" class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-        <div class="mb-4 flex items-center justify-between">
+    <div x-show="activeTab === 'calendar'" style="display: none;" class="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-6">
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
                 <h3 class="text-base font-bold text-[#101D3B]">Kalender Sesi Latihan Symphony</h3>
                 <p class="text-xs text-gray-400 mt-0.5">Klik pada jadwal untuk melihat detail atau membuka sesi</p>
             </div>
-            <div class="flex items-center gap-3 text-xs">
+            <div class="flex flex-wrap items-center gap-3 text-xs">
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#101D3B]"></span> Rutin</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#C6A044]"></span> Tambahan</span>
                 <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Kompetisi</span>
             </div>
         </div>
 
-        <div id="fullcalendar-container" class="min-h-[550px]"></div>
+        <div id="fullcalendar-container" class="min-h-[420px] sm:min-h-[550px]"></div>
     </div>
 
     {{-- Calendar Event Detail Modal --}}
@@ -293,11 +307,9 @@ function initCalendar() {
         events: '{{ route('schedules.calendar') }}',
         eventClick: function(info) {
             info.jsEvent.preventDefault();
-            const alpineScope = document.querySelector('[x-data]').__x;
-            if (alpineScope) {
-                alpineScope.$data.selectedEvent = info.event;
-                alpineScope.$data.showEventModal = true;
-            }
+            window.dispatchEvent(new CustomEvent('calendar-event-selected', {
+                detail: info.event
+            }));
         }
     });
 

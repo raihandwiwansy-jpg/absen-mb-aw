@@ -10,10 +10,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpg') }}">
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts & CDN Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -164,7 +165,6 @@
             position: fixed;
             border-radius: 50%;
             pointer-events: none;
-            will-change: opacity;
             animation: glowPulse 5s ease-in-out infinite;
         }
         .amb-gold {
@@ -208,14 +208,14 @@
             0%,100% { opacity: .08; }
             50%      { opacity: .55; }
         }
-        .star { animation: starBlink 3.5s ease-in-out infinite; will-change: opacity; }
+        .star { animation: starBlink 3.5s ease-in-out infinite; }
 
         /* ── Card Pulse Border ─────────────────────────────────────── */
         @keyframes cardPulse {
             0%,100% { border-color: rgba(198,160,68,.28); }
-            50%      { border-color: rgba(198,160,68,.65); box-shadow: 0 0 28px rgba(198,160,68,.18); }
+            50%      { border-color: rgba(198,160,68,.65); }
         }
-        .card-pulse { animation: cardPulse 3.8s ease-in-out infinite; }
+        .card-pulse { animation: cardPulse 3.8s ease-in-out infinite; box-shadow: 0 0 22px rgba(198,160,68,.12); }
 
         /* ── Entrance Fade ─────────────────────────────────────────── */
         @keyframes fadeUp {
@@ -248,7 +248,7 @@
     {{-- ================================================================
          BACKGROUND LAYER — Portal rings + glows + instruments + stars
          ================================================================ --}}
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" style="contain: strict;" aria-hidden="true">
 
         <!-- Dot Grid -->
         <div class="absolute inset-0 dot-grid"></div>
@@ -270,12 +270,12 @@
         <div class="absolute top-[38%] left-[12%] text-4xl select-none fi-b opacity-25">🥁</div>
         <div class="absolute top-[66%] left-[6%]  text-3xl select-none fi-c opacity-20">🎷</div>
         <div class="absolute top-[18%] right-[7%] text-4xl select-none fi-b opacity-25">🎻</div>
-        <div class="absolute top-[48%] right-[10%]text-3xl select-none fi-a opacity-20">🎹</div>
+        <div class="absolute top-[48%] right-[10%] text-3xl select-none fi-a opacity-20">🎹</div>
         <div class="absolute top-[74%] right-[5%] text-5xl select-none fi-b opacity-28">𝄞</div>
         <div class="absolute top-[8%]  left-[44%] text-2xl select-none fi-c opacity-18">♬</div>
         <div class="absolute top-[82%] left-[38%] text-3xl select-none fi-a opacity-20">🎼</div>
         <div class="absolute top-[55%] left-[48%] text-2xl select-none fi-b opacity-15">♩</div>
-        <div class="absolute top-[30%] right-[28%]text-xl select-none fi-c opacity-15">🎵</div>
+        <div class="absolute top-[30%] right-[28%] text-xl select-none fi-c opacity-15">🎵</div>
 
         <!-- Star dots -->
         <div class="star absolute w-1   h-1   rounded-full bg-white         top-[12%] left-[28%]" style="animation-delay:.4s"></div>

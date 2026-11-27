@@ -144,7 +144,7 @@ class Member extends Model
         ]);
 
         foreach ($candidates as $path) {
-            if (Storage::disk('public')->exists($path) || file_exists(public_path('storage/'.$path))) {
+            if (file_exists(public_path('storage/'.$path)) || Storage::disk('public')->exists($path)) {
                 return $path;
             }
         }

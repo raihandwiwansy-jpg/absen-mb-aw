@@ -9,6 +9,7 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpg') }}">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- Dark Mode Initializer -->
     <script>
@@ -76,14 +77,14 @@
         .auth-ring-2{width:500px;height:500px;margin:-250px 0 0 -250px;animation:authSpinCCW 40s linear infinite;border-color:rgba(198,160,68,.06);}
         .auth-ring-3{width:720px;height:720px;margin:-360px 0 0 -360px;animation:authSpinCW 65s linear infinite;border-color:rgba(255,255,255,.035);}
 
-        .auth-amb { position:fixed;border-radius:50%;pointer-events:none;will-change:opacity;animation:authGlow 5s ease-in-out infinite; }
+        .auth-amb { position:fixed;border-radius:50%;pointer-events:none;animation:authGlow 5s ease-in-out infinite; }
         .auth-amb-1{width:420px;height:420px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(198,160,68,.28) 0%,transparent 65%);}
         .auth-amb-2{width:380px;height:380px;bottom:-100px;right:-80px;background:radial-gradient(circle,rgba(28,52,120,.45) 0%,transparent 65%);animation-delay:2.5s;}
 
         .auth-fi-a{animation:authFloat  8s ease-in-out infinite;will-change:transform,opacity;}
         .auth-fi-b{animation:authFloat2 9.5s ease-in-out 1.6s infinite;will-change:transform,opacity;}
         .auth-fi-c{animation:authFloat  11s ease-in-out 3.2s infinite;will-change:transform,opacity;}
-        .auth-star{animation:authStar 3.5s ease-in-out infinite;will-change:opacity;}
+        .auth-star{animation:authStar 3.5s ease-in-out infinite;}
 
         @media(prefers-reduced-motion:reduce){
             .auth-ring,.auth-amb,.auth-fi-a,.auth-fi-b,.auth-fi-c,.auth-star{animation:none!important;}
@@ -98,7 +99,7 @@
     <!-- ============================================================
          BACKGROUND — Portal rings + glows + instruments + stars
          ============================================================ -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" style="contain: strict;" aria-hidden="true">
 
         <!-- Dot grid -->
         <div class="absolute inset-0" style="background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;"></div>

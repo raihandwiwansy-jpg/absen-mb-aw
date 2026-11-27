@@ -68,6 +68,8 @@ class PracticeScheduleController extends Controller
             'description' => ['nullable', 'string'],
             'officer_id' => ['nullable', 'exists:users,id'],
             'organizational_period_id' => ['nullable', 'exists:organizational_periods,id'],
+        ], [
+            'end_time.after' => 'Jam selesai harus lebih akhir dari jam mulai.',
         ]);
 
         $schedule = PracticeSchedule::create($validated);
@@ -90,9 +92,12 @@ class PracticeScheduleController extends Controller
         $schedule->load([
             'officer',
             'organizationalPeriod',
-            'attendanceSessions.openedBy',
-            'attendanceSessions.attendanceToken',
-            'attendanceSessions.attendances.member',
+            'attendanceSessions' => fn ($q) => $q->with('openedBy', 'attendanceToken')
+                ->withCount([
+                    'attendances as present_count' => fn ($a) => $a->where('status', 'present'),
+                    'attendances as late_count' => fn ($a) => $a->where('status', 'late'),
+                    'attendances as absent_count' => fn ($a) => $a->where('status', 'absent'),
+                ]),
             'permissionRequests.member',
         ]);
 
@@ -120,12 +125,14 @@ class PracticeScheduleController extends Controller
             'type' => ['required', 'in:regular,additional,competition'],
             'date' => ['required', 'date'],
             'start_time' => ['required'],
-            'end_time' => ['required'],
+            'end_time' => ['required', 'after:start_time'],
             'location' => ['required', 'string', 'max:255'],
             'dress_code' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'officer_id' => ['nullable', 'exists:users,id'],
             'organizational_period_id' => ['nullable', 'exists:organizational_periods,id'],
+        ], [
+            'end_time.after' => 'Jam selesai harus lebih akhir dari jam mulai.',
         ]);
 
         $schedule->update($validated);

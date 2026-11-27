@@ -78,7 +78,13 @@ class PermissionRequestController extends Controller
             'practice_schedule_id' => ['required', 'exists:practice_schedules,id'],
             'type' => ['required', 'in:permission,sick'],
             'reason' => ['required', 'string', 'max:1000'],
-            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:10240'],
+        ], [
+            'practice_schedule_id.required' => 'Jadwal latihan wajib dipilih.',
+            'type.required' => 'Jenis pengajuan wajib dipilih.',
+            'reason.required' => 'Alasan ketidakhadiran wajib diisi.',
+            'attachment.mimes' => 'Lampiran harus berupa gambar (JPG, PNG, WEBP, GIF) atau PDF.',
+            'attachment.max' => 'Ukuran file lampiran maksimal 10MB.',
         ]);
 
         // Check if already requested for this schedule
@@ -120,6 +126,13 @@ class PermissionRequestController extends Controller
      */
     public function show(PermissionRequest $permissionRequest): View
     {
+        $user = auth()->user();
+        $isStaff = $user->hasAnyRole(['super_admin', 'administrator', 'attendance_officer', 'coach']);
+
+        if (! $isStaff && $permissionRequest->member_id !== $user->member?->id) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat pengajuan izin milik anggota lain.');
+        }
+
         $permissionRequest->load(['member.division', 'member.instrument', 'practiceSchedule', 'reviewedBy']);
 
         return view('permission-requests.show', compact('permissionRequest'));

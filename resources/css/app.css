@@ -139,16 +139,16 @@ body {
 }
 
 @keyframes trumpetFanfare {
-    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); filter: drop-shadow(0 0 8px rgba(198, 160, 68, 0.3)); }
-    50%      { transform: translateY(-10px) rotate(-4deg) scale(1.05); filter: drop-shadow(0 0 20px rgba(198, 160, 68, 0.7)); }
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    50%      { transform: translate3d(0, -10px, 0) rotate(-4deg) scale(1.05); }
 }
 
 @keyframes drumBeat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    15%      { transform: translateY(-8px) scale(1.06); }
-    30%      { transform: translateY(0) scale(0.97); }
-    45%      { transform: translateY(-4px) scale(1.03); }
-    60%      { transform: translateY(0) scale(1); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    15%      { transform: translate3d(0, -8px, 0) scale(1.06); }
+    30%      { transform: translate3d(0, 0, 0) scale(0.97); }
+    45%      { transform: translate3d(0, -4px, 0) scale(1.03); }
+    60%      { transform: translate3d(0, 0, 0) scale(1); }
 }
 
 @keyframes flagSway {
@@ -157,36 +157,36 @@ body {
 }
 
 @keyframes floatSlow {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50%      { transform: translateY(-16px) rotate(3deg); }
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50%      { transform: translate3d(0, -16px, 0) rotate(3deg); }
 }
 
 @keyframes goldGlow {
-    0%, 100% { filter: drop-shadow(0 0 10px rgba(198, 160, 68, 0.35)); }
-    50%      { filter: drop-shadow(0 0 25px rgba(198, 160, 68, 0.75)); }
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.03); }
 }
 
 @keyframes noteRise {
-    0%   { transform: translateY(15px) scale(0.85); opacity: 0; }
+    0%   { transform: translate3d(0, 15px, 0) scale(0.85); opacity: 0; }
     50%  { opacity: 0.85; }
-    100% { transform: translateY(-35px) scale(1.15); opacity: 0; }
+    100% { transform: translate3d(0, -35px, 0) scale(1.15); opacity: 0; }
 }
 
 /* ============================================================
    ANIMATION UTILITY CLASSES
    ============================================================ */
-.animate-fade-in      { animation: fadeIn 0.3s ease-out both; }
-.animate-fade-in-left { animation: fadeInLeft 0.3s ease-out both; }
-.animate-slide-in-right { animation: slideInRight 0.3s ease-out both; }
-.animate-slide-down   { animation: slideDown 0.25s ease-out both; }
-.animate-scale-in     { animation: scaleIn 0.2s ease-out both; }
+.animate-fade-in      { animation: fadeIn 0.25s ease-out both; }
+.animate-fade-in-left { animation: fadeInLeft 0.25s ease-out both; }
+.animate-slide-in-right { animation: slideInRight 0.25s ease-out both; }
+.animate-slide-down   { animation: slideDown 0.2s ease-out both; }
+.animate-scale-in     { animation: scaleIn 0.18s ease-out both; }
 .animate-pulse-gold   { animation: pulse-gold 2s infinite; }
 .animate-spin-slow    { animation: spin-slow 3s linear infinite; }
-.animate-trumpet      { animation: trumpetFanfare 4s ease-in-out infinite; }
+.animate-trumpet      { animation: trumpetFanfare 4s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(198, 160, 68, 0.45)); }
 .animate-drum         { animation: drumBeat 2.8s ease-in-out infinite; }
 .animate-flag         { animation: flagSway 4.5s ease-in-out infinite; transform-origin: bottom left; }
 .animate-float-slow   { animation: floatSlow 5.5s ease-in-out infinite; }
-.animate-gold-glow    { animation: goldGlow 3s ease-in-out infinite; }
+.animate-gold-glow    { animation: goldGlow 3s ease-in-out infinite; filter: drop-shadow(0 0 12px rgba(198, 160, 68, 0.5)); }
 .animate-note-1       { animation: noteRise 3.8s ease-in-out infinite; }
 .animate-note-2       { animation: noteRise 4.6s ease-in-out infinite 1.2s; }
 .animate-note-3       { animation: noteRise 4.2s ease-in-out infinite 0.6s; }
@@ -389,16 +389,13 @@ body {
     animation: liveRowFlash 2.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* MOBILE OVERLAY WITH BLUR */
+/* MOBILE OVERLAY (lightweight without full-screen blur for smooth budget phones) */
 #sidebar-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background-color: rgba(16, 29, 59, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(10, 20, 40, 0.62);
     z-index: 49;
-    transition: opacity 0.3s ease;
 }
 
 #sidebar-overlay.active {
@@ -1014,6 +1011,26 @@ html.dark .fc .fc-col-header-cell {
 
 html.dark .fc .fc-toolbar-title {
     color: #F7F5EF !important;
+}
+
+/* Eliminate 300ms mobile tap delay & optimize offscreen rendering on mobile */
+a, button, input, select, textarea, label {
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .backdrop-blur-2xl,
+    .backdrop-blur-xl,
+    .backdrop-blur-md {
+        -webkit-backdrop-filter: blur(4px) !important;
+        backdrop-filter: blur(4px) !important;
+    }
+
+    .glass-panel,
+    .glass-panel-dark {
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
 }
 
 html.dark .fc-theme-standard td,

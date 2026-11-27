@@ -26,8 +26,17 @@ class AttendanceSessionController extends Controller
      */
     public function index(): View
     {
+        AttendanceSession::closeStaleSessions();
+
         $sessions = AttendanceSession::with(['practiceSchedule', 'openedBy', 'attendanceToken'])
-            ->withCount('attendances')
+            ->withCount([
+                'attendances',
+                'attendances as present_count' => fn ($q) => $q->where('status', 'present'),
+                'attendances as late_count' => fn ($q) => $q->where('status', 'late'),
+                'attendances as permission_count' => fn ($q) => $q->where('status', 'permission'),
+                'attendances as sick_count' => fn ($q) => $q->where('status', 'sick'),
+                'attendances as absent_count' => fn ($q) => $q->where('status', 'absent'),
+            ])
             ->orderByDesc('opened_at')
             ->paginate(10);
 
@@ -182,10 +191,10 @@ class AttendanceSessionController extends Controller
             ->get()
             ->map(function ($att) {
                 return [
-                    'member_name' => $att->member->full_name,
-                    'member_code' => $att->member->member_code,
-                    'division' => $att->member->division->name ?? '-',
-                    'instrument' => $att->member->instrument->name ?? '-',
+                    'member_name' => $att->member?->full_name ?? 'Anggota',
+                    'member_code' => $att->member?->member_code ?? '-',
+                    'division' => $att->member?->division?->name ?? '-',
+                    'instrument' => $att->member?->instrument?->name ?? '-',
                     'status' => $att->status,
                     'status_label' => $att->status_label,
                     'check_in_time' => $att->check_in_time->format('H:i:s'),
@@ -199,11 +208,11 @@ class AttendanceSessionController extends Controller
             ->map(function ($att) {
                 return [
                     'member_id' => $att->member_id,
-                    'member_name' => $att->member->full_name,
+                    'member_name' => $att->member?->full_name ?? 'Anggota',
                     'status' => $att->status,
                     'status_label' => $att->status_label,
                     'check_in_time' => $att->check_in_time ? $att->check_in_time->format('H:i:s') : '-',
-                    'recorded_by' => $att->recordedBy->name ?? 'Sistem',
+                    'recorded_by' => $att->recordedBy?->name ?? 'Sistem',
                 ];
             });
 

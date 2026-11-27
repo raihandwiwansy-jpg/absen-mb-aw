@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="w-full max-w-5xl mx-auto" x-data="{
-    email: '{{ old('email', '') }}',
+    email: @json(old('email', '')),
     password: '',
     showPassword: false,
     isSubmitting: false

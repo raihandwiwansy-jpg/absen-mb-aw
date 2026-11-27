@@ -61,13 +61,13 @@
                     @forelse($attendances as $att)
                     <tr class="hover:bg-gray-50/50">
                         <td class="p-4 font-mono font-medium whitespace-nowrap">
-                            {{ $att->attendanceSession->practiceSchedule->date->format('d/m/Y') ?? '-' }}
+                            {{ $att->attendanceSession?->practiceSchedule?->date?->format('d/m/Y') ?? '-' }}
                         </td>
                         <td class="p-4 font-bold text-[#101D3B]">
-                            {{ $att->attendanceSession->practiceSchedule->title ?? 'Sesi Latihan' }}
+                            {{ $att->attendanceSession?->practiceSchedule?->title ?? 'Sesi Latihan' }}
                         </td>
                         <td class="p-4 text-gray-500">
-                            {{ $att->attendanceSession->practiceSchedule->location ?? '-' }}
+                            {{ $att->attendanceSession?->practiceSchedule?->location ?? '-' }}
                         </td>
                         <td class="p-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase

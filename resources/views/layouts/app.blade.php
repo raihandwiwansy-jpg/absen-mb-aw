@@ -7,8 +7,10 @@
 
     <title>{{ config('app.name', 'Symphony') }} — @yield('title', 'Dashboard')</title>
 
-    <!-- Favicon -->
+    <!-- Favicon & Resource Preconnects -->
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpg') }}">
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- Dark Mode Initializer & Global Clock -->
     <script>
@@ -44,6 +46,9 @@
 </head>
 @php
     $currentUser = Auth::user();
+    if ($currentUser) {
+        $currentUser->loadMissing(['member', 'roles']);
+    }
     $isStaff = $currentUser && $currentUser->hasAnyRole(['super_admin', 'administrator', 'attendance_officer', 'coach']);
     $homeRoute = $isStaff ? route('dashboard') : route('portal.dashboard');
     $navPhotoUrl = $currentUser?->photo_url;
@@ -746,10 +751,10 @@
                 },
                 @endif
                 {
-                    title: 'Ubah Kata Sandi',
-                    desc: 'Perbarui kata sandi dan keamanan akun',
+                    title: 'Edit Profil & Sandi',
+                    desc: 'Perbarui foto profil, email, no. HP & kata sandi',
                     url: '{{ route('profile.edit') }}',
-                    icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>'
+                    icon: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
                 }
             ],
 

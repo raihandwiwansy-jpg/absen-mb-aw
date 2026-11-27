@@ -6,7 +6,7 @@
 @section('content')
 <div class="max-w-xl mx-auto space-y-6"
      x-data="{
-        manualToken: '{{ $token ?? '' }}',
+        manualToken: @json($token ?? ''),
         isProcessing: false,
         resultMessage: '',
         resultStatus: '', // 'success' or 'error'
@@ -104,6 +104,7 @@
         }
      }"
      @qr-token-scanned.window="submitToken($event.detail.token)"
+     @qr-camera-status.window="cameraStatus = $event.detail.status; if ($event.detail.msg) cameraErrorMsg = $event.detail.msg;"
      x-init="
         if (manualToken) {
             submitToken(manualToken);
@@ -282,14 +283,14 @@
         {{-- Manual Token Fallback --}}
         <div class="mt-8 pt-6 border-t border-gray-100 text-left">
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Atau Masukkan Token Sesi Manual</label>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input type="text"
                        x-model="manualToken"
                        placeholder="Ketik kode token sesi (misal: A1B2C3D4)..."
                        class="form-input flex-1 rounded-xl border-gray-200 text-xs font-mono uppercase focus:border-[#C6A044] focus:ring-[#C6A044]">
                 <button type="button"
                         @click="submitToken(manualToken)"
-                        class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#101D3B] hover:bg-[#1a2d57] transition shadow-xs flex-shrink-0">
+                        class="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#101D3B] hover:bg-[#1a2d57] transition shadow-xs flex-shrink-0 justify-center">
                     Kirim Token
                 </button>
             </div>
@@ -344,16 +345,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    function setCameraStatus(status, msg = '') {
+        window.dispatchEvent(new CustomEvent('qr-camera-status', {
+            detail: { status: status, msg: msg }
+        }));
+    }
+
     function startCamera() {
-        const rootComponent = document.querySelector('[x-data]');
+        setCameraStatus('starting');
 
         // Check if browser environment supports getUserMedia
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             console.warn("navigator.mediaDevices.getUserMedia is not available in this context.");
-            if (rootComponent && rootComponent._x_dataStack) {
-                rootComponent._x_dataStack[0].cameraStatus = 'error';
-                rootComponent._x_dataStack[0].cameraErrorMsg = 'Browser membatasi kamera langsung pada koneksi non-HTTPS. Silakan gunakan tombol "Ambil Foto QR" di bawah.';
-            }
+            setCameraStatus('error', 'Browser membatasi kamera langsung pada koneksi non-HTTPS. Silakan gunakan tombol "Ambil Foto QR" di bawah.');
             return;
         }
 
@@ -363,9 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
             config,
             qrCodeSuccessCallback
         ).then(() => {
-            if (rootComponent && rootComponent._x_dataStack) {
-                rootComponent._x_dataStack[0].cameraStatus = 'active';
-            }
+            setCameraStatus('active');
         }).catch(err => {
             console.warn("Rear camera start failed, attempting fallback:", err);
             // Fallback to any available camera
@@ -374,15 +376,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 config,
                 qrCodeSuccessCallback
             ).then(() => {
-                if (rootComponent && rootComponent._x_dataStack) {
-                    rootComponent._x_dataStack[0].cameraStatus = 'active';
-                }
+                setCameraStatus('active');
             }).catch(fallbackErr => {
                 console.warn("All camera attempts failed:", fallbackErr);
-                if (rootComponent && rootComponent._x_dataStack) {
-                    rootComponent._x_dataStack[0].cameraStatus = 'error';
-                    rootComponent._x_dataStack[0].cameraErrorMsg = 'Izin kamera ditolak atau perangkat tidak mendukung. Gunakan tombol "Ambil Foto QR" di bawah.';
-                }
+                setCameraStatus('error', 'Izin kamera ditolak atau perangkat tidak mendukung. Gunakan tombol "Ambil Foto QR" di bawah.');
             });
         });
     }

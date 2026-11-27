@@ -8,8 +8,8 @@
     rows: {
         @foreach($requests as $req)
         {{ $req->id }}: {
-            status: '{{ $req->status }}',
-            status_label: '{{ $req->status_label }}',
+            status: @json($req->status),
+            status_label: @json($req->status_label),
             isProcessing: false,
         },
         @endforeach
@@ -142,12 +142,12 @@
                             {{ $req->created_at->format('d/m/Y H:i') }}
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-[#101D3B]">{{ $req->member->full_name }}</div>
-                            <div class="text-[10px] text-gray-400 font-mono">{{ $req->member->member_code }} • {{ $req->member->division->name ?? '' }}</div>
+                            <div class="font-bold text-[#101D3B]">{{ $req->member?->full_name ?? 'Anggota Dihapus' }}</div>
+                            <div class="text-[10px] text-gray-400 font-mono">{{ $req->member?->member_code ?? '-' }} • {{ $req->member?->division?->name ?? '' }}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-gray-900">{{ $req->practiceSchedule->title ?? '-' }}</div>
-                            <div class="text-[11px] text-gray-400">{{ $req->practiceSchedule->date->format('d/m/Y') ?? '' }}</div>
+                            <div class="font-bold text-gray-900">{{ $req->practiceSchedule?->title ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-400">{{ $req->practiceSchedule?->date?->format('d/m/Y') ?? '' }}</div>
                         </td>
                         <td class="p-4">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $req->type === 'sick' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
@@ -179,7 +179,7 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="inline-flex items-center gap-1.5">
-                                @can('verify-permission')
+                                @if(auth()->user()->hasAnyRole(['super_admin', 'administrator', 'attendance_officer']))
                                     <template x-if="rows[{{ $req->id }}].status === 'pending'">
                                         <div class="flex items-center gap-1">
                                             {{-- Instant Approve --}}
@@ -201,7 +201,7 @@
                                             </button>
                                         </div>
                                     </template>
-                                @endcan
+                                @endif
 
                                 <a href="{{ route('permission-requests.show', $req) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-navy bg-gray-100 hover:bg-gray-200 transition">
                                     Detail

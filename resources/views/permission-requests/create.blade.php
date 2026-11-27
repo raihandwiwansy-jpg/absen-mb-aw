@@ -21,7 +21,7 @@
                 <select name="practice_schedule_id" required class="form-select w-full rounded-xl border-gray-200 text-sm focus:border-[#C6A044] focus:ring-[#C6A044]">
                     <option value="">-- Pilih Jadwal Latihan Terkait --</option>
                     @foreach($schedules as $sched)
-                    <option value="{{ $sched->id }}" {{ old('practice_schedule_id') == $sched->id ? 'selected' : '' }}>
+                    <option value="{{ $sched->id }}" {{ old('practice_schedule_id', request('practice_schedule_id')) == $sched->id ? 'selected' : '' }}>
                         {{ $sched->date->format('d/m/Y') }} &mdash; {{ $sched->title }} ({{ substr($sched->start_time, 0, 5) }} WIB)
                     </option>
                     @endforeach
@@ -31,7 +31,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Jenis Pengajuan <span class="text-red-500">*</span></label>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <label class="flex items-center gap-3 p-3.5 rounded-xl border border-gray-200 cursor-pointer hover:border-[#C6A044] transition">
                         <input type="radio" name="type" value="permission" {{ old('type', 'permission') === 'permission' ? 'checked' : '' }} class="accent-[#C6A044]">
                         <div>
@@ -57,8 +57,9 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Lampiran Pendukung (Opsional)</label>
-                <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D3B]/10 file:text-[#101D3B] hover:file:bg-[#101D3B]/20">
-                <p class="text-[11px] text-gray-400 mt-1">Surat dokter, surat orang tua, atau dokumen lain (JPG, PNG, PDF maks. 3MB)</p>
+                <input type="file" name="attachment" accept="image/*,.pdf" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#101D3B]/10 file:text-[#101D3B] hover:file:bg-[#101D3B]/20">
+                <p class="text-[11px] text-gray-400 mt-1">Surat dokter, surat orang tua, atau dokumen lain (JPG, PNG, WEBP, PDF maks. 10MB)</p>
+                @error('attachment') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">

@@ -6,6 +6,7 @@ use App\Models\AttendanceSession;
 use App\Models\Member;
 use App\Models\PracticeSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MemberPortalController extends Controller
@@ -24,14 +25,19 @@ class MemberPortalController extends Controller
 
         $member->load(['division', 'instrument', 'position', 'organizationalPeriod']);
 
-        // Personal stats
-        $totalSessions = $member->attendances()->count();
-        $presentCount = $member->attendances()->whereIn('status', ['present', 'late'])->count();
-        $lateCount = $member->attendances()->where('status', 'late')->count();
-        $permissionCount = $member->attendances()->where('status', 'permission')->count();
-        $sickCount = $member->attendances()->where('status', 'sick')->count();
-        $absentCount = $member->attendances()->where('status', 'absent')->count();
-        $attendancePercentage = $member->attendance_percentage;
+        // Personal stats in one grouped query
+        $statusCounts = $member->attendances()
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $totalSessions = (int) $statusCounts->sum();
+        $lateCount = (int) ($statusCounts['late'] ?? 0);
+        $presentCount = (int) (($statusCounts['present'] ?? 0) + $lateCount);
+        $permissionCount = (int) ($statusCounts['permission'] ?? 0);
+        $sickCount = (int) ($statusCounts['sick'] ?? 0);
+        $absentCount = (int) ($statusCounts['absent'] ?? 0);
+        $attendancePercentage = $totalSessions > 0 ? round(($presentCount / $totalSessions) * 100, 1) : 0.0;
 
         // Recent personal attendances
         $recentAttendances = $member->attendances()
@@ -39,6 +45,9 @@ class MemberPortalController extends Controller
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
+
+        // Auto-close stale sessions before checking active session banner
+        AttendanceSession::closeStaleSessions();
 
         // Active Attendance Session (if opened by officer/coach/admin)
         $activeSession = AttendanceSession::where('is_active', true)
@@ -109,6 +118,8 @@ class MemberPortalController extends Controller
         }
 
         $schedules = $query->paginate(10)->withQueryString();
+
+        AttendanceSession::closeStaleSessions();
 
         $activeSession = AttendanceSession::where('is_active', true)
             ->with(['practiceSchedule'])

@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::post('attendance/scan/process', [AttendanceController::class, 'processScan'])->name('attendance.process');
 
     // Permission and Sickness Requests (Members submit requests, staff reviews)
-    Route::resource('permission-requests', PermissionRequestController::class);
+    Route::resource('permission-requests', PermissionRequestController::class)->only(['index', 'create', 'store', 'show']);
 
     // ============================================================
     // ADMINISTRATIVE & STAFF-ONLY ROUTES (Admin, Officer, Coach)

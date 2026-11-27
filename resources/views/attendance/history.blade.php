@@ -90,20 +90,20 @@
                     @forelse($attendances as $att)
                     <tr class="hover:bg-gray-50/50">
                         <td class="p-4 whitespace-nowrap font-mono">
-                            <div class="font-bold text-gray-900">{{ $att->attendanceSession->practiceSchedule->date->format('d/m/Y') ?? '-' }}</div>
+                            <div class="font-bold text-gray-900">{{ $att->attendanceSession?->practiceSchedule?->date?->format('d/m/Y') ?? '-' }}</div>
                             <div class="text-[10px] text-gray-400">{{ $att->created_at->format('H:i') }} WIB</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-[#101D3B]">{{ $att->member->full_name }}</div>
-                            <div class="text-[10px] text-gray-400 font-mono">{{ $att->member->member_code }}</div>
+                            <div class="font-bold text-[#101D3B]">{{ $att->member?->full_name ?? 'Anggota Dihapus' }}</div>
+                            <div class="text-[10px] text-gray-400 font-mono">{{ $att->member?->member_code ?? '-' }}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-medium text-gray-800">{{ $att->member->division->name ?? '-' }}</div>
-                            <div class="text-[11px] text-gray-400">{{ $att->member->instrument->name ?? '-' }}</div>
+                            <div class="font-medium text-gray-800">{{ $att->member?->division?->name ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-400">{{ $att->member?->instrument?->name ?? '-' }}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-semibold text-gray-900">{{ $att->attendanceSession->practiceSchedule->title ?? '-' }}</div>
-                            <div class="text-[11px] text-gray-400">{{ $att->attendanceSession->practiceSchedule->location ?? '' }}</div>
+                            <div class="font-semibold text-gray-900">{{ $att->attendanceSession?->practiceSchedule?->title ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-400">{{ $att->attendanceSession?->practiceSchedule?->location ?? '' }}</div>
                         </td>
                         <td class="p-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase

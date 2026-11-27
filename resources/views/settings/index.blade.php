@@ -23,7 +23,7 @@
         </div>
 
         <div class="flex flex-col gap-2 text-xs text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div><strong>Host Server:</strong> http://localhost:8002</div>
+            <div><strong>Host Server:</strong> {{ request()->getSchemeAndHttpHost() }}</div>
             <div><strong>Versi Laravel:</strong> {{ app()->version() }}</div>
             <div><strong>Versi PHP:</strong> {{ PHP_VERSION }}</div>
             <div><strong>Basis Data:</strong> MySQL (absensi)</div>
@@ -59,12 +59,12 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between pt-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                 <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
                     <input type="checkbox" name="is_active" value="1" class="rounded accent-[#C6A044]">
                     <span>Tetapkan langsung sebagai periode aktif</span>
                 </label>
-                <button type="submit" class="btn-primary py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#101D3B] hover:bg-[#1a2d57] transition shadow-sm">
+                <button type="submit" class="btn-primary py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#101D3B] hover:bg-[#1a2d57] transition shadow-sm justify-center">
                     Simpan Periode
                 </button>
             </div>

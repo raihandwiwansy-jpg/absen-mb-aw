@@ -191,8 +191,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 text-gray-700">
                     @forelse($attendances as $index => $att)
+                    @if($att->member)
                     <tr class="hover:bg-amber-50/20 transition-all duration-300"
-                        x-show="matchesFilter('{{ strtolower($att->member->full_name) }}', '{{ strtolower($att->member->member_code) }}', '{{ $att->member->division->name ?? '' }}', rows[{{ $att->member_id }}].status)"
+                        x-show="matchesFilter(@js(strtolower($att->member->full_name)), @js(strtolower($att->member->member_code)), @js($att->member->division->name ?? ''), rows[{{ $att->member_id }}].status)"
                         :class="{ 'live-updated-row': rows[{{ $att->member_id }}].justUpdated }">
                         <td class="p-4 text-gray-400 font-mono">{{ $index + 1 }}</td>
                         <td class="p-4">
@@ -233,6 +234,7 @@
                             <span x-text="rows[{{ $att->member_id }}].recorded_by"></span>
                         </td>
                     </tr>
+                    @endif
                     @empty
                     <tr>
                         <td colspan="6" class="p-8 text-center text-gray-400">Belum ada anggota yang terdata dalam sesi ini.</td>
@@ -257,20 +259,20 @@
          style="display: none;">
 
         {{-- Top Projector Bar --}}
-        <div class="flex items-center justify-between border-b border-white/10 pb-6">
-            <div class="flex items-center gap-4">
-                <img src="{{ asset('logo.jpg') }}" alt="Symphony Logo" class="w-16 h-16 rounded-full border-2 border-[#C6A044] p-0.5 bg-white/10">
-                <div>
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5 sm:pb-6">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                <img src="{{ asset('logo.jpg') }}" alt="Symphony Logo" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-[#C6A044] p-0.5 bg-white/10 flex-shrink-0">
+                <div class="min-w-0">
                     <span class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#C6A044]/20 border border-[#C6A044]/40 text-[#C6A044] text-[10px] font-bold tracking-widest uppercase">
                         Symphony Marching Band • Live Projector
                     </span>
-                    <h1 class="text-xl lg:text-2xl font-black text-white mt-1">
+                    <h1 class="text-lg sm:text-xl lg:text-2xl font-black text-white mt-1 truncate">
                         {{ $session->practiceSchedule->title ?? 'Sesi Latihan' }}
                     </h1>
                 </div>
             </div>
 
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 sm:gap-6 ml-auto">
                 {{-- Live Clock --}}
                 <div class="text-right">
                     <p class="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest">Waktu Sekarang</p>
@@ -289,21 +291,21 @@
 
             {{-- Big QR Code Center --}}
             <div class="lg:col-span-7 flex flex-col items-center justify-center text-center">
-                <div class="relative p-6 rounded-3xl bg-[#F7F5EF] border-4 border-[#C6A044] shadow-2xl pulse-ring-gold">
-                    <img :src="currentQrUrl" alt="QR Code Presensi" class="w-72 h-72 lg:w-80 lg:h-80 object-contain mx-auto">
+                <div class="relative p-4 sm:p-6 rounded-3xl bg-[#F7F5EF] border-4 border-[#C6A044] shadow-2xl pulse-ring-gold">
+                    <img :src="currentQrUrl" alt="QR Code Presensi" class="w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 object-contain mx-auto">
                     {{-- Logo in center of QR decorative overlay --}}
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div class="w-12 h-12 rounded-full border-2 border-[#C6A044] p-0.5 bg-white shadow-md">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-[#C6A044] p-0.5 bg-white shadow-md">
                             <img src="{{ asset('logo.jpg') }}" alt="Center Logo" class="w-full h-full rounded-full object-cover">
                         </div>
                     </div>
                 </div>
 
-                <p class="text-sm text-gray-300 font-medium mt-6">
+                <p class="text-xs sm:text-sm text-gray-300 font-medium mt-5 sm:mt-6">
                     Arahkan kamera smartphone Anda ke QR Code untuk mencatat kehadiran secara otomatis.
                 </p>
 
-                <div class="mt-4 flex items-center gap-4">
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                     <button type="button" @click="refreshQr()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-navy bg-[#C6A044] hover:bg-[#b59239] transition shadow-md">
                         <svg class="w-4 h-4 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Refresh Token QR
@@ -403,13 +405,15 @@ function attendanceSheet(config) {
         // Initialize state map for each member
         rows: {
             @foreach($attendances as $att)
+            @if($att->member)
             {{ $att->member_id }}: {
-                status: '{{ $att->status }}',
-                check_in_time: '{{ $att->check_in_time ? $att->check_in_time->format('H:i:s') : '-' }}',
-                recorded_by: '{{ $att->recordedBy->name ?? 'Sistem' }}',
+                status: @json($att->status),
+                check_in_time: @json($att->check_in_time ? $att->check_in_time->format('H:i:s') : '-'),
+                recorded_by: @json($att->recordedBy?->name ?? 'Sistem'),
                 isSaving: false,
                 justUpdated: false,
             },
+            @endif
             @endforeach
         },
 
@@ -450,6 +454,14 @@ function attendanceSheet(config) {
             .then(data => {
                 this.isPolling = false;
                 this.lastSyncTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                if (typeof data.is_active === 'boolean' && !data.is_active) {
+                    this.isActive = false;
+                    if (this.autoSyncInterval) {
+                        clearInterval(this.autoSyncInterval);
+                        this.autoSyncInterval = null;
+                    }
+                }
 
                 if (data.stats) {
                     this.stats = data.stats;

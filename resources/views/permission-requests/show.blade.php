@@ -30,22 +30,22 @@
             <div class="flex items-start justify-between py-2 border-b border-gray-50">
                 <span class="text-gray-400 w-1/3">Nama Anggota</span>
                 <span class="font-bold text-[#101D3B] w-2/3 text-right">
-                    {{ $permissionRequest->member->full_name }} ({{ $permissionRequest->member->member_code }})
+                    {{ $permissionRequest->member?->full_name ?? 'Anggota Dihapus' }} ({{ $permissionRequest->member?->member_code ?? '-' }})
                 </span>
             </div>
 
             <div class="flex items-start justify-between py-2 border-b border-gray-50">
                 <span class="text-gray-400 w-1/3">Divisi & Instrumen</span>
                 <span class="font-semibold text-gray-800 w-2/3 text-right">
-                    {{ $permissionRequest->member->division->name ?? '-' }} • {{ $permissionRequest->member->instrument->name ?? '-' }}
+                    {{ $permissionRequest->member?->division?->name ?? '-' }} • {{ $permissionRequest->member?->instrument?->name ?? '-' }}
                 </span>
             </div>
 
             <div class="flex items-start justify-between py-2 border-b border-gray-50">
                 <span class="text-gray-400 w-1/3">Jadwal Latihan Terkait</span>
                 <span class="font-semibold text-gray-800 w-2/3 text-right">
-                    {{ $permissionRequest->practiceSchedule->title ?? '-' }}
-                    <span class="block text-gray-400 font-mono">{{ $permissionRequest->practiceSchedule->date->format('d F Y') }}</span>
+                    {{ $permissionRequest->practiceSchedule?->title ?? '-' }}
+                    <span class="block text-gray-400 font-mono">{{ $permissionRequest->practiceSchedule?->date?->format('d F Y') ?? '-' }}</span>
                 </span>
             </div>
 
@@ -85,17 +85,17 @@
         {{-- Action Buttons for Admin/Officer --}}
         @hasanyrole('super_admin|administrator|attendance_officer')
         @if($permissionRequest->status === 'pending')
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 mt-6">
-            <form action="{{ route('permission-requests.reject', $permissionRequest) }}" method="POST" onsubmit="return confirm('Tolak permohonan izin ini?');" class="inline">
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-6 border-t border-gray-100 mt-6">
+            <form action="{{ route('permission-requests.reject', $permissionRequest) }}" method="POST" onsubmit="return confirm('Tolak permohonan izin ini?');" class="w-full sm:w-auto">
                 @csrf
-                <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
+                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
                     Tolak Pengajuan
                 </button>
             </form>
 
-            <form action="{{ route('permission-requests.approve', $permissionRequest) }}" method="POST" onsubmit="return confirm('Setujui permohonan izin ini? Status kehadiran anggota akan otomatis diperbarui.');" class="inline">
+            <form action="{{ route('permission-requests.approve', $permissionRequest) }}" method="POST" onsubmit="return confirm('Setujui permohonan izin ini? Status kehadiran anggota akan otomatis diperbarui.');" class="w-full sm:w-auto">
                 @csrf
-                <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md">
+                <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-md">
                     Setujui & Perbarui Absensi
                 </button>
             </form>

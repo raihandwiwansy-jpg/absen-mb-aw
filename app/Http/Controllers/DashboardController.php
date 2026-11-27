@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Attendance;
-use App\Models\AttendanceSession;
 use App\Models\Division;
 use App\Models\Member;
 use App\Models\PermissionRequest;
 use App\Models\PracticeSchedule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -19,25 +19,63 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        $totalMembers = Member::count();
-        $activeMembers = Member::where('status', 'active')->count();
+        $memberStatusCounts = Member::query()
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
-        // Today's attendance session
+        $totalMembers = (int) $memberStatusCounts->sum();
+        $activeMembers = (int) ($memberStatusCounts['active'] ?? 0);
+
         $today = Carbon::today();
-        $todaySessions = AttendanceSession::whereHas('practiceSchedule', function ($query) use ($today) {
-            $query->whereDate('date', $today);
-        })->pluck('id');
 
-        $presentToday = Attendance::whereIn('attendance_session_id', $todaySessions)->where('status', 'present')->count();
-        $lateToday = Attendance::whereIn('attendance_session_id', $todaySessions)->where('status', 'late')->count();
-        $permissionToday = Attendance::whereIn('attendance_session_id', $todaySessions)->where('status', 'permission')->count();
-        $sickToday = Attendance::whereIn('attendance_session_id', $todaySessions)->where('status', 'sick')->count();
-        $absentToday = Attendance::whereIn('attendance_session_id', $todaySessions)->where('status', 'absent')->count();
+        // Today's attendance counts (single grouped query)
+        $todayCounts = DB::table('attendances')
+            ->join('attendance_sessions', 'attendances.attendance_session_id', '=', 'attendance_sessions.id')
+            ->join('practice_schedules', 'attendance_sessions.practice_schedule_id', '=', 'practice_schedules.id')
+            ->whereNull('practice_schedules.deleted_at')
+            ->whereDate('practice_schedules.date', $today->toDateString())
+            ->select('attendances.status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('attendances.status')
+            ->pluck('aggregate', 'status');
 
-        // Overall attendance percentage
-        $totalRecorded = Attendance::count();
-        $attendedCount = Attendance::whereIn('status', ['present', 'late'])->count();
+        $presentToday = (int) ($todayCounts['present'] ?? 0);
+        $lateToday = (int) ($todayCounts['late'] ?? 0);
+        $permissionToday = (int) ($todayCounts['permission'] ?? 0);
+        $sickToday = (int) ($todayCounts['sick'] ?? 0);
+        $absentToday = (int) ($todayCounts['absent'] ?? 0);
+
+        // Overall attendance percentage (single grouped query)
+        $overallCounts = Attendance::query()
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $totalRecorded = (int) $overallCounts->sum();
+        $attendedCount = (int) (($overallCounts['present'] ?? 0) + ($overallCounts['late'] ?? 0));
         $overallPercentage = $totalRecorded > 0 ? round(($attendedCount / $totalRecorded) * 100, 1) : 0;
+
+        // Fetch last 6 months attendance aggregates in one query for both weekly & monthly charts
+        $sixMonthsStart = $today->copy()->subMonths(5)->startOfMonth();
+        $chartRows = DB::table('attendances')
+            ->join('attendance_sessions', 'attendances.attendance_session_id', '=', 'attendance_sessions.id')
+            ->join('practice_schedules', 'attendance_sessions.practice_schedule_id', '=', 'practice_schedules.id')
+            ->whereNull('practice_schedules.deleted_at')
+            ->whereDate('practice_schedules.date', '>=', $sixMonthsStart->toDateString())
+            ->select('practice_schedules.date', 'attendances.status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('practice_schedules.date', 'attendances.status')
+            ->get();
+
+        $dailyMap = [];
+        $monthlyMap = [];
+        foreach ($chartRows as $row) {
+            $dateStr = substr((string) $row->date, 0, 10);
+            $monthKey = substr($dateStr, 0, 7);
+            $count = (int) $row->aggregate;
+
+            $dailyMap[$dateStr][$row->status] = ($dailyMap[$dateStr][$row->status] ?? 0) + $count;
+            $monthlyMap[$monthKey][$row->status] = ($monthlyMap[$monthKey][$row->status] ?? 0) + $count;
+        }
 
         // Weekly attendance chart data (last 7 days)
         $weeklyLabels = [];
@@ -48,18 +86,16 @@ class DashboardController extends Controller
         $weeklyAbsent = [];
 
         for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
+            $date = $today->copy()->subDays($i);
+            $dateKey = $date->toDateString();
+            $bucket = $dailyMap[$dateKey] ?? [];
+
             $weeklyLabels[] = $date->translatedFormat('d M');
-
-            $sessionIds = AttendanceSession::whereHas('practiceSchedule', function ($query) use ($date) {
-                $query->whereDate('date', $date);
-            })->pluck('id');
-
-            $weeklyPresent[] = Attendance::whereIn('attendance_session_id', $sessionIds)->where('status', 'present')->count();
-            $weeklyLate[] = Attendance::whereIn('attendance_session_id', $sessionIds)->where('status', 'late')->count();
-            $weeklyPermission[] = Attendance::whereIn('attendance_session_id', $sessionIds)->where('status', 'permission')->count();
-            $weeklySick[] = Attendance::whereIn('attendance_session_id', $sessionIds)->where('status', 'sick')->count();
-            $weeklyAbsent[] = Attendance::whereIn('attendance_session_id', $sessionIds)->where('status', 'absent')->count();
+            $weeklyPresent[] = (int) ($bucket['present'] ?? 0);
+            $weeklyLate[] = (int) ($bucket['late'] ?? 0);
+            $weeklyPermission[] = (int) ($bucket['permission'] ?? 0);
+            $weeklySick[] = (int) ($bucket['sick'] ?? 0);
+            $weeklyAbsent[] = (int) ($bucket['absent'] ?? 0);
         }
 
         // Monthly attendance chart data (last 6 months)
@@ -68,27 +104,41 @@ class DashboardController extends Controller
         $monthlyAbsent = [];
 
         for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::today()->subMonths($i);
+            $month = $today->copy()->subMonths($i);
+            $monthKey = $month->format('Y-m');
+            $bucket = $monthlyMap[$monthKey] ?? [];
+
             $monthlyLabels[] = $month->translatedFormat('F Y');
-
-            $monthSessionIds = AttendanceSession::whereHas('practiceSchedule', function ($query) use ($month) {
-                $query->whereYear('date', $month->year)->whereMonth('date', $month->month);
-            })->pluck('id');
-
-            $monthlyPresent[] = Attendance::whereIn('attendance_session_id', $monthSessionIds)->whereIn('status', ['present', 'late'])->count();
-            $monthlyAbsent[] = Attendance::whereIn('attendance_session_id', $monthSessionIds)->whereIn('status', ['absent', 'permission', 'sick'])->count();
+            $monthlyPresent[] = (int) (($bucket['present'] ?? 0) + ($bucket['late'] ?? 0));
+            $monthlyAbsent[] = (int) (($bucket['absent'] ?? 0) + ($bucket['permission'] ?? 0) + ($bucket['sick'] ?? 0));
         }
 
-        // Attendance statistics by division
+        // Attendance statistics by division (2 queries instead of N*3)
         $divisions = Division::withCount(['members' => function ($q) {
             $q->where('status', 'active');
         }])->get();
 
-        $divisionStats = $divisions->map(function (Division $division) {
-            $memberIds = $division->members()->pluck('id');
-            $totalAttendances = Attendance::whereIn('member_id', $memberIds)->count();
-            $presentCount = Attendance::whereIn('member_id', $memberIds)->whereIn('status', ['present', 'late'])->count();
-            $percentage = $totalAttendances > 0 ? round(($presentCount / $totalAttendances) * 100, 1) : 0;
+        $divisionAttendanceRows = DB::table('attendances')
+            ->join('members', 'attendances.member_id', '=', 'members.id')
+            ->whereNull('members.deleted_at')
+            ->whereNotNull('members.division_id')
+            ->select('members.division_id', 'attendances.status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('members.division_id', 'attendances.status')
+            ->get();
+
+        $divisionAttendanceMap = [];
+        foreach ($divisionAttendanceRows as $row) {
+            $divId = (int) $row->division_id;
+            $count = (int) $row->aggregate;
+            $divisionAttendanceMap[$divId]['total'] = ($divisionAttendanceMap[$divId]['total'] ?? 0) + $count;
+            if (in_array($row->status, ['present', 'late'], true)) {
+                $divisionAttendanceMap[$divId]['present'] = ($divisionAttendanceMap[$divId]['present'] ?? 0) + $count;
+            }
+        }
+
+        $divisionStats = $divisions->map(function (Division $division) use ($divisionAttendanceMap) {
+            $totals = $divisionAttendanceMap[$division->id] ?? ['total' => 0, 'present' => 0];
+            $percentage = $totals['total'] > 0 ? round(($totals['present'] / $totals['total']) * 100, 1) : 0;
 
             return [
                 'name' => $division->name,
@@ -98,13 +148,17 @@ class DashboardController extends Controller
             ];
         });
 
-        // Most disciplined members (highest attendance rate, minimum 1 attendance)
+        // Most disciplined members (single query using withCount instead of N*2 queries)
         $topMembers = Member::with(['division', 'instrument'])
             ->where('status', 'active')
+            ->withCount([
+                'attendances as total_attendances_count',
+                'attendances as present_attendances_count' => fn ($q) => $q->whereIn('status', ['present', 'late']),
+            ])
             ->get()
             ->map(function (Member $member) {
-                $total = $member->attendances()->count();
-                $present = $member->attendances()->whereIn('status', ['present', 'late'])->count();
+                $total = (int) $member->total_attendances_count;
+                $present = (int) $member->present_attendances_count;
                 $percentage = $total > 0 ? round(($present / $total) * 100, 1) : 0;
 
                 return [
@@ -125,7 +179,7 @@ class DashboardController extends Controller
 
         // Upcoming practice schedules
         $upcomingSchedules = PracticeSchedule::with(['officer', 'activeSession'])
-            ->where('date', '>=', Carbon::today())
+            ->where('date', '>=', $today)
             ->orderBy('date')
             ->orderBy('start_time')
             ->limit(5)

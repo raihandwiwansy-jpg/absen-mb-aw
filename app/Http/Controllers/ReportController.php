@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -57,15 +58,21 @@ class ReportController extends Controller
             });
         }
 
+        // Calculate summary counts in a single grouped query
+        $statusCounts = (clone $query)
+            ->reorder()
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         $attendances = $query->paginate(20)->withQueryString();
         $divisions = Division::all();
 
-        // Calculate summary counts
-        $totalPresent = (clone $query)->where('status', 'present')->count();
-        $totalLate = (clone $query)->where('status', 'late')->count();
-        $totalPermission = (clone $query)->where('status', 'permission')->count();
-        $totalSick = (clone $query)->where('status', 'sick')->count();
-        $totalAbsent = (clone $query)->where('status', 'absent')->count();
+        $totalPresent = (int) ($statusCounts['present'] ?? 0);
+        $totalLate = (int) ($statusCounts['late'] ?? 0);
+        $totalPermission = (int) ($statusCounts['permission'] ?? 0);
+        $totalSick = (int) ($statusCounts['sick'] ?? 0);
+        $totalAbsent = (int) ($statusCounts['absent'] ?? 0);
 
         return view('reports.attendance', compact(
             'attendances',
@@ -90,23 +97,26 @@ class ReportController extends Controller
             $query->where('division_id', $request->division_id);
         }
 
-        $members = $query->get()->map(function (Member $member) {
-            $total = $member->attendances()->count();
-            $present = $member->attendances()->whereIn('status', ['present', 'late'])->count();
-            $late = $member->attendances()->where('status', 'late')->count();
-            $permission = $member->attendances()->where('status', 'permission')->count();
-            $sick = $member->attendances()->where('status', 'sick')->count();
-            $absent = $member->attendances()->where('status', 'absent')->count();
+        $members = $query->withCount([
+            'attendances as total_sessions_count',
+            'attendances as present_count' => fn ($q) => $q->whereIn('status', ['present', 'late']),
+            'attendances as late_count' => fn ($q) => $q->where('status', 'late'),
+            'attendances as permission_count' => fn ($q) => $q->where('status', 'permission'),
+            'attendances as sick_count' => fn ($q) => $q->where('status', 'sick'),
+            'attendances as absent_count' => fn ($q) => $q->where('status', 'absent'),
+        ])->get()->map(function (Member $member) {
+            $total = (int) $member->total_sessions_count;
+            $present = (int) $member->present_count;
             $percentage = $total > 0 ? round(($present / $total) * 100, 1) : 0;
 
             return (object) [
                 'member' => $member,
                 'total_sessions' => $total,
                 'present' => $present,
-                'late' => $late,
-                'permission' => $permission,
-                'sick' => $sick,
-                'absent' => $absent,
+                'late' => (int) $member->late_count,
+                'permission' => (int) $member->permission_count,
+                'sick' => (int) $member->sick_count,
+                'absent' => (int) $member->absent_count,
                 'percentage' => $percentage,
             ];
         })->sortByDesc('percentage')->values();
@@ -121,20 +131,37 @@ class ReportController extends Controller
      */
     public function division(Request $request): View
     {
-        $divisions = Division::with(['instruments', 'members'])->get()->map(function (Division $division) {
-            $memberIds = $division->members()->pluck('id');
-            $totalAttendances = Attendance::whereIn('member_id', $memberIds)->count();
-            $presentCount = Attendance::whereIn('member_id', $memberIds)->whereIn('status', ['present', 'late'])->count();
-            $lateCount = Attendance::whereIn('member_id', $memberIds)->where('status', 'late')->count();
-            $permissionCount = Attendance::whereIn('member_id', $memberIds)->where('status', 'permission')->count();
-            $sickCount = Attendance::whereIn('member_id', $memberIds)->where('status', 'sick')->count();
-            $absentCount = Attendance::whereIn('member_id', $memberIds)->where('status', 'absent')->count();
+        $attendanceRows = DB::table('attendances')
+            ->join('members', 'attendances.member_id', '=', 'members.id')
+            ->whereNull('members.deleted_at')
+            ->whereNotNull('members.division_id')
+            ->select('members.division_id', 'attendances.status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('members.division_id', 'attendances.status')
+            ->get();
+
+        $attendanceMap = [];
+        foreach ($attendanceRows as $row) {
+            $divId = (int) $row->division_id;
+            $attendanceMap[$divId][$row->status] = (int) $row->aggregate;
+        }
+
+        $divisions = Division::withCount([
+            'members as total_members_count',
+            'members as active_members_count' => fn ($q) => $q->where('status', 'active'),
+        ])->get()->map(function (Division $division) use ($attendanceMap) {
+            $bucket = $attendanceMap[$division->id] ?? [];
+            $lateCount = (int) ($bucket['late'] ?? 0);
+            $presentCount = (int) (($bucket['present'] ?? 0) + $lateCount);
+            $permissionCount = (int) ($bucket['permission'] ?? 0);
+            $sickCount = (int) ($bucket['sick'] ?? 0);
+            $absentCount = (int) ($bucket['absent'] ?? 0);
+            $totalAttendances = (int) array_sum($bucket);
             $percentage = $totalAttendances > 0 ? round(($presentCount / $totalAttendances) * 100, 1) : 0;
 
             return (object) [
                 'division' => $division,
-                'total_members' => $division->members()->count(),
-                'active_members' => $division->members()->where('status', 'active')->count(),
+                'total_members' => (int) $division->total_members_count,
+                'active_members' => (int) $division->active_members_count,
                 'total_attendances' => $totalAttendances,
                 'present' => $presentCount,
                 'late' => $lateCount,

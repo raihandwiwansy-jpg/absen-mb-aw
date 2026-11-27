@@ -14,7 +14,7 @@
             <h2 class="text-2xl font-bold text-[#101D3B]">Laporan Presensi Terpadu</h2>
             <p class="text-sm text-gray-500 mt-1">Rekap data kehadiran latihan dengan filter dinamis dan ekspor dokumen</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <a href="{{ route('reports.export.pdf') }}?{{ http_build_query(request()->all()) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Unduh PDF Resmi
@@ -92,7 +92,7 @@
             <span class="text-[10px] font-bold text-purple-800 uppercase block">Sakit</span>
             <span class="text-xl font-black text-purple-700 mt-1 block">{{ $totalSick }}</span>
         </div>
-        <div class="bg-red-50 border border-red-200 p-3.5 rounded-xl text-center">
+        <div class="bg-red-50 border border-red-200 p-3.5 rounded-xl text-center col-span-2 sm:col-span-1">
             <span class="text-[10px] font-bold text-red-800 uppercase block">Alpa</span>
             <span class="text-xl font-black text-red-700 mt-1 block">{{ $totalAbsent }}</span>
         </div>
@@ -116,18 +116,18 @@
                     @forelse($attendances as $att)
                     <tr class="hover:bg-gray-50/50">
                         <td class="p-4 whitespace-nowrap font-mono">
-                            {{ $att->attendanceSession->practiceSchedule->date->format('d/m/Y') ?? '-' }}
+                            {{ $att->attendanceSession?->practiceSchedule?->date?->format('d/m/Y') ?? '-' }}
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-[#101D3B]">{{ $att->member->full_name }}</div>
-                            <div class="text-[10px] text-gray-400 font-mono">{{ $att->member->member_code }}</div>
+                            <div class="font-bold text-[#101D3B]">{{ $att->member?->full_name ?? 'Anggota Dihapus' }}</div>
+                            <div class="text-[10px] text-gray-400 font-mono">{{ $att->member?->member_code ?? '-' }}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-medium text-gray-800">{{ $att->member->division->name ?? '-' }}</div>
-                            <div class="text-[11px] text-gray-400">{{ $att->member->instrument->name ?? '-' }}</div>
+                            <div class="font-medium text-gray-800">{{ $att->member?->division?->name ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-400">{{ $att->member?->instrument?->name ?? '-' }}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-semibold text-gray-900">{{ $att->attendanceSession->practiceSchedule->title ?? '-' }}</div>
+                            <div class="font-semibold text-gray-900">{{ $att->attendanceSession?->practiceSchedule?->title ?? '-' }}</div>
                         </td>
                         <td class="p-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase

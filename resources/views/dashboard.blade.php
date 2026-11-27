@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <a href="{{ route('attendance.scan') }}"
                    class="btn-gold inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition shadow-xl hover:shadow-2xl pulse-ring-gold"
                    style="background-color: #C6A044; color: #101D3B;">
@@ -51,12 +51,12 @@
         </div>
 
         @if($pendingPermissionsCount > 0)
-        <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-amber-300">
+        <div class="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-300">
             <div class="flex items-center gap-2">
-                <span class="flex h-2 w-2 rounded-full bg-amber-400 animate-ping"></span>
+                <span class="flex h-2 w-2 rounded-full bg-amber-400 animate-ping flex-shrink-0"></span>
                 <span>Ada <strong>{{ $pendingPermissionsCount }}</strong> permohonan izin/sakit yang belum ditinjau.</span>
             </div>
-            <a href="{{ route('permission-requests.index') }}" class="underline hover:text-white font-bold">Tinjau Sekarang &rarr;</a>
+            <a href="{{ route('permission-requests.index') }}" class="underline hover:text-white font-bold self-start sm:self-auto">Tinjau Sekarang &rarr;</a>
         </div>
         @endif
     </div>

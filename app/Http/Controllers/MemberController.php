@@ -52,10 +52,15 @@ class MemberController extends Controller
 
         $members = $query->paginate(15)->withQueryString();
 
-        $totalMembers = Member::count();
-        $activeMembers = Member::where('status', 'active')->count();
-        $inactiveMembers = Member::where('status', 'inactive')->count();
-        $alumniMembers = Member::where('status', 'alumni')->count();
+        $statusCounts = Member::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $totalMembers = (int) $statusCounts->sum();
+        $activeMembers = (int) ($statusCounts['active'] ?? 0);
+        $inactiveMembers = (int) ($statusCounts['inactive'] ?? 0);
+        $alumniMembers = (int) ($statusCounts['alumni'] ?? 0);
 
         $divisions = Division::orderBy('name')->get();
         $instruments = Instrument::orderBy('name')->get();
