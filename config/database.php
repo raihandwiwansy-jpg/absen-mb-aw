@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Str;
@@ -6,7 +5,17 @@ use Pdo\Mysql;
 
 return [
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    /*
+    |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Di sini kita paksa default-nya ke 'mysql'. Kalau di Env Vars 
+    | EthioDeploy kamu belum nulis DB_CONNECTION, dia otomatis pakai MySQL.
+    |
+    */
+
+    'default' => env('DB_CONNECTION', 'mysql'),
 
     'connections' => [
 
@@ -24,6 +33,7 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
+            // Ini kunci utamanya bray, biar dia baca DATABASE_URL dari addon
             'url' => env('DB_URL', env('DATABASE_URL')),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -44,7 +54,7 @@ return [
 
         'mariadb' => [
             'driver' => 'mariadb',
-            'url' => env('DB_URL'),
+            'url' => env('DB_URL', env('DATABASE_URL')), // Ditambahin biar aman
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'laravel'),
