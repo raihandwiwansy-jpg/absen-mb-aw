@@ -213,11 +213,12 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
+                        @php $membersPreviewMap = []; @endphp
                         @foreach ($members as $index => $member)
                             @php
                                 $effectivePhoto = $member->effective_photo;
                                 $photoUrl = $effectivePhoto ? asset('storage/' . $effectivePhoto) : null;
-                                $memberJson = [
+                                $membersPreviewMap[$member->id] = [
                                     'id' => $member->id,
                                     'name' => $member->full_name,
                                     'code' => $member->member_code,
@@ -238,7 +239,11 @@
                                 ];
                             @endphp
                             <tr class="hover:bg-amber-50/20 transition-colors"
-                                x-show="matchesFilter('{{ strtolower($member->full_name) }}', '{{ strtolower($member->member_code) }}', '{{ $member->division->name ?? '' }}', '{{ $member->status }}')">
+                                data-name="{{ strtolower($member->full_name) }}"
+                                data-code="{{ strtolower($member->member_code) }}"
+                                data-division="{{ $member->division->name ?? '' }}"
+                                data-status="{{ $member->status }}"
+                                x-show="matchesFilter($el.dataset.name, $el.dataset.code, $el.dataset.division, $el.dataset.status)">
                                 <td class="px-4 py-3 text-gray-400 font-mono">
                                     {{ $members->firstItem() + $index }}
                                 </td>
@@ -246,9 +251,9 @@
                                     @if ($photoUrl)
                                         <img src="{{ $photoUrl }}" alt="{{ $member->full_name }}"
                                             class="h-9 w-9 rounded-full object-cover ring-2 ring-[#C6A044]/30 cursor-pointer hover:scale-105 transition"
-                                            @click='openPreview(@json($memberJson))'>
+                                            @click="openPreview(window.__membersPreviewMap[{{ $member->id }}])">
                                     @else
-                                        <div @click='openPreview(@json($memberJson))'
+                                        <div @click="openPreview(window.__membersPreviewMap[{{ $member->id }}])"
                                             class="flex h-9 w-9 items-center justify-center rounded-full bg-[#101D3B] text-xs font-black text-white cursor-pointer hover:scale-105 transition">
                                             {{ strtoupper(substr($member->full_name, 0, 2)) }}
                                         </div>
@@ -261,7 +266,7 @@
                                 </td>
                                 <td class="px-4 py-3 font-bold text-gray-800">
                                     <button type="button"
-                                            @click='openPreview(@json($memberJson))'
+                                            @click="openPreview(window.__membersPreviewMap[{{ $member->id }}])"
                                             class="hover:text-[#C6A044] text-left transition font-bold block">
                                         {{ $member->full_name }}
                                     </button>
@@ -305,7 +310,7 @@
                                     <div class="inline-flex items-center gap-1">
                                         {{-- Quick Preview Modal Trigger --}}
                                         <button type="button"
-                                            @click='openPreview(@json($memberJson))'
+                                            @click="openPreview(window.__membersPreviewMap[{{ $member->id }}])"
                                             class="rounded-xl p-1.5 text-gray-400 hover:bg-gold/10 hover:text-gold transition"
                                             title="Quick View Preview">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -693,3 +698,9 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+window.__membersPreviewMap = @json($membersPreviewMap ?? []);
+</script>
+@endpush

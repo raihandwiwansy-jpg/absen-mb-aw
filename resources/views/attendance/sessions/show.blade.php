@@ -193,7 +193,10 @@
                     @forelse($attendances as $index => $att)
                     @if($att->member)
                     <tr class="hover:bg-amber-50/20 transition-all duration-300"
-                        x-show="matchesFilter(@js(strtolower($att->member->full_name)), @js(strtolower($att->member->member_code)), @js($att->member->division->name ?? ''), rows[{{ $att->member_id }}].status)"
+                        data-name="{{ strtolower($att->member->full_name) }}"
+                        data-code="{{ strtolower($att->member->member_code) }}"
+                        data-division="{{ $att->member->division->name ?? '' }}"
+                        x-show="matchesFilter($el.dataset.name, $el.dataset.code, $el.dataset.division, rows[{{ $att->member_id }}].status)"
                         :class="{ 'live-updated-row': rows[{{ $att->member_id }}].justUpdated }">
                         <td class="p-4 text-gray-400 font-mono">{{ $index + 1 }}</td>
                         <td class="p-4">

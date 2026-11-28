@@ -222,3 +222,28 @@ test('dashboard and reports run with bounded query counts without n+1 regression
 
     expect($disciplineQueries)->toBeLessThan(15);
 });
+
+test('vite manifest assets exist on disk and alpine x-data attributes do not leak raw javascript', function () {
+    $manifestPath = public_path('build/manifest.json');
+    expect(file_exists($manifestPath))->toBeTrue();
+
+    $manifest = json_decode(file_get_contents($manifestPath), true);
+    foreach (['resources/css/app.css', 'resources/js/app.js'] as $entry) {
+        expect($manifest)->toHaveKey($entry);
+        $assetFile = public_path('build/'.$manifest[$entry]['file']);
+        expect(file_exists($assetFile))->toBeTrue();
+    }
+
+    $loginHtml = $this->get(route('login'))->assertStatus(200)->getContent();
+    expect($loginHtml)->toContain('data-email=""');
+
+    $admin = User::where('email', 'admin@symphony.com')->firstOrFail();
+
+    // Ensure Scan QR & Members Create & Permission Requests render clean HTML without broken x-data quotes
+    $scanHtml = $this->actingAs($admin)->get(route('attendance.scan', ['token' => 'TEST123']))->assertStatus(200)->getContent();
+    expect($scanHtml)->toContain('data-initial-token="TEST123"');
+    expect($scanHtml)->toContain('x-data="qrScanner($el.dataset.initialToken');
+
+    $this->actingAs($admin)->get(route('members.create'))->assertStatus(200)->assertSee('memberCreateForm');
+    $this->actingAs($admin)->get(route('permission-requests.index'))->assertStatus(200)->assertSee('permissionRequestsPage');
+});

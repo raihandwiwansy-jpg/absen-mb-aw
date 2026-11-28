@@ -3,12 +3,14 @@
 @section('title', 'Masuk ke Sistem')
 
 @section('content')
-<div class="w-full max-w-5xl mx-auto" x-data="{
-    email: @json(old('email', '')),
-    password: '',
-    showPassword: false,
-    isSubmitting: false
-}">
+<div class="w-full max-w-5xl mx-auto"
+     data-email="{{ old('email', '') }}"
+     x-data="{
+        email: $el.dataset.email || '',
+        password: '',
+        showPassword: false,
+        isSubmitting: false
+     }">
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
 

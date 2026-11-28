@@ -123,7 +123,8 @@
                 @php
                     $existingMemberPhotoUrl = $member->effective_photo ? asset('storage/' . $member->effective_photo) : null;
                 @endphp
-                <div x-data="{ photoPreview: @js($existingMemberPhotoUrl) }">
+                <div data-photo-preview="{{ $existingMemberPhotoUrl ?? '' }}"
+                     x-data="{ photoPreview: $el.dataset.photoPreview || null }">
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Foto Profil</label>
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 rounded-full border-2 border-[#C6A044] p-0.5 bg-gray-50 flex-shrink-0 overflow-hidden shadow-sm">

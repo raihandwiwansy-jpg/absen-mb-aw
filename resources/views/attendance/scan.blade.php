@@ -5,104 +5,9 @@
 
 @section('content')
 <div class="max-w-xl mx-auto space-y-6"
-     x-data="{
-        manualToken: @json($token ?? ''),
-        isProcessing: false,
-        resultMessage: '',
-        resultStatus: '', // 'success' or 'error'
-        attendeeData: null,
-        soundEnabled: true,
-        cameraStatus: 'starting', // 'starting', 'active', 'error', 'insecure'
-        cameraErrorMsg: '',
-        isInsecure: location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1',
-
-        submitToken(tokenValue) {
-            if (!tokenValue) {
-                window.showToast('Token kosong atau tidak valid.', 'warning');
-                return;
-            }
-
-            // Extract token if user passed a URL
-            let cleanToken = tokenValue.trim();
-            try {
-                if (cleanToken.includes('http://') || cleanToken.includes('https://')) {
-                    const parsedUrl = new URL(cleanToken);
-                    if (parsedUrl.searchParams.has('token')) {
-                        cleanToken = parsedUrl.searchParams.get('token');
-                    }
-                }
-            } catch(e) {}
-
-            this.isProcessing = true;
-            this.resultMessage = '';
-            this.attendeeData = null;
-
-            fetch('{{ route('attendance.process') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ token: cleanToken })
-            })
-            .then(res => res.json().then(data => ({ status: res.status, body: data })))
-            .then(res => {
-                this.isProcessing = false;
-                if (res.status === 200 && res.body.success) {
-                    this.resultStatus = 'success';
-                    this.resultMessage = res.body.message;
-                    this.attendeeData = res.body.attendance || {};
-                    if (this.soundEnabled) {
-                        window.playAudioFeedback('success');
-                    }
-                    window.triggerHaptic('success');
-                    window.showToast(res.body.message, 'success');
-                } else {
-                    this.resultStatus = 'error';
-                    this.resultMessage = res.body.message || 'Gagal mencatat presensi.';
-                    if (this.soundEnabled) {
-                        window.playAudioFeedback('error');
-                    }
-                    window.triggerHaptic('error');
-                    window.showToast(this.resultMessage, 'error');
-                }
-            })
-            .catch(err => {
-                this.isProcessing = false;
-                this.resultStatus = 'error';
-                this.resultMessage = 'Terjadi kesalahan koneksi ke server.';
-                window.showToast(this.resultMessage, 'error');
-            });
-        },
-
-        scanFromFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            this.isProcessing = true;
-            if (window.html5QrCodeScannerInstance) {
-                window.html5QrCodeScannerInstance.scanFile(file, true)
-                    .then(decodedText => {
-                        this.isProcessing = false;
-                        this.submitToken(decodedText);
-                    })
-                    .catch(err => {
-                        this.isProcessing = false;
-                        window.showToast('Gagal mendeteksi QR Code dari foto. Pastikan gambar cukup terang dan fokus.', 'error');
-                    });
-            } else {
-                this.isProcessing = false;
-                window.showToast('Pemindai belum siap. Silakan muat ulang halaman.', 'error');
-            }
-        },
-
-        resetScanner() {
-            this.resultMessage = '';
-            this.resultStatus = '';
-            this.attendeeData = null;
-        }
-     }"
+     data-initial-token="{{ $token ?? '' }}"
+     data-process-url="{{ route('attendance.process') }}"
+     x-data="qrScanner($el.dataset.initialToken || '', $el.dataset.processUrl)"
      @qr-token-scanned.window="submitToken($event.detail.token)"
      @qr-camera-status.window="cameraStatus = $event.detail.status; if ($event.detail.msg) cameraErrorMsg = $event.detail.msg;"
      x-init="
@@ -305,6 +210,106 @@
 @push('scripts')
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
+function qrScanner(initialToken, processUrl) {
+    return {
+        manualToken: initialToken || '',
+        isProcessing: false,
+        resultMessage: '',
+        resultStatus: '',
+        attendeeData: null,
+        soundEnabled: true,
+        cameraStatus: 'starting',
+        cameraErrorMsg: '',
+        isInsecure: location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1',
+
+        submitToken(tokenValue) {
+            if (!tokenValue) {
+                window.showToast('Token kosong atau tidak valid.', 'warning');
+                return;
+            }
+
+            let cleanToken = tokenValue.trim();
+            try {
+                if (cleanToken.includes('http://') || cleanToken.includes('https://')) {
+                    const parsedUrl = new URL(cleanToken);
+                    if (parsedUrl.searchParams.has('token')) {
+                        cleanToken = parsedUrl.searchParams.get('token');
+                    }
+                }
+            } catch (e) {}
+
+            this.isProcessing = true;
+            this.resultMessage = '';
+            this.attendeeData = null;
+
+            fetch(processUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ token: cleanToken })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(res => {
+                this.isProcessing = false;
+                if (res.status === 200 && res.body.success) {
+                    this.resultStatus = 'success';
+                    this.resultMessage = res.body.message;
+                    this.attendeeData = res.body.attendance || {};
+                    if (this.soundEnabled) {
+                        window.playAudioFeedback('success');
+                    }
+                    window.triggerHaptic('success');
+                    window.showToast(res.body.message, 'success');
+                } else {
+                    this.resultStatus = 'error';
+                    this.resultMessage = res.body.message || 'Gagal mencatat presensi.';
+                    if (this.soundEnabled) {
+                        window.playAudioFeedback('error');
+                    }
+                    window.triggerHaptic('error');
+                    window.showToast(this.resultMessage, 'error');
+                }
+            })
+            .catch(() => {
+                this.isProcessing = false;
+                this.resultStatus = 'error';
+                this.resultMessage = 'Terjadi kesalahan koneksi ke server.';
+                window.showToast(this.resultMessage, 'error');
+            });
+        },
+
+        scanFromFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            this.isProcessing = true;
+            if (window.html5QrCodeScannerInstance) {
+                window.html5QrCodeScannerInstance.scanFile(file, true)
+                    .then(decodedText => {
+                        this.isProcessing = false;
+                        this.submitToken(decodedText);
+                    })
+                    .catch(() => {
+                        this.isProcessing = false;
+                        window.showToast('Gagal mendeteksi QR Code dari foto. Pastikan gambar cukup terang dan fokus.', 'error');
+                    });
+            } else {
+                this.isProcessing = false;
+                window.showToast('Pemindai belum siap. Silakan muat ulang halaman.', 'error');
+            }
+        },
+
+        resetScanner() {
+            this.resultMessage = '';
+            this.resultStatus = '';
+            this.attendeeData = null;
+        }
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const readerElement = document.getElementById("reader");
     if (!readerElement) return;

@@ -11,7 +11,10 @@
     $roleLabel = str_replace('_', ' ', $user->getRoleNames()->first() ?? 'member');
 @endphp
 
-<div class="max-w-3xl mx-auto space-y-5 sm:space-y-6" x-data="profileForm(@js($existingPhotoUrl), @js($hasExistingPhoto))">
+<div class="max-w-3xl mx-auto space-y-5 sm:space-y-6"
+     data-initial-url="{{ $existingPhotoUrl ?? '' }}"
+     data-has-photo="{{ $hasExistingPhoto ? '1' : '0' }}"
+     x-data="profileForm($el.dataset.initialUrl || null, $el.dataset.hasPhoto === '1')">
 
     @if(session('success'))
     <div class="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 text-xs sm:text-sm font-semibold shadow-sm">

@@ -3,25 +3,8 @@
 @section('title', 'Tambah Anggota')
 
 @section('content')
-    <div x-data="{
-        photoPreview: null,
-        selectedDivisionId: '{{ old('division_id') }}',
-        instruments: @json($instruments->map(fn($i) => ['id' => $i->id, 'name' => $i->name, 'division_id' => $i->division_id])),
-
-        get filteredInstruments() {
-            if (!this.selectedDivisionId) return this.instruments;
-            return this.instruments.filter(i => String(i.division_id) === String(this.selectedDivisionId));
-        },
-
-        previewPhoto(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => { this.photoPreview = e.target.result; };
-                reader.readAsDataURL(file);
-            }
-        }
-    }">
+    <div data-selected-division="{{ old('division_id', '') }}"
+         x-data="memberCreateForm($el.dataset.selectedDivision || '')">
         {{-- Page Header --}}
         <div class="mb-6 flex items-center gap-4">
             <a href="{{ route('members.index') }}"
@@ -254,3 +237,29 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+function memberCreateForm(initialDivisionId) {
+    return {
+        photoPreview: null,
+        selectedDivisionId: initialDivisionId || '',
+        instruments: @json($instruments->map(fn ($i) => ['id' => $i->id, 'name' => $i->name, 'division_id' => $i->division_id])),
+
+        get filteredInstruments() {
+            if (!this.selectedDivisionId) return this.instruments;
+            return this.instruments.filter(i => String(i.division_id) === String(this.selectedDivisionId));
+        },
+
+        previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => { this.photoPreview = e.target.result; };
+                reader.readAsDataURL(file);
+            }
+        }
+    };
+}
+</script>
+@endpush

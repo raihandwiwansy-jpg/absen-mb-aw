@@ -4,80 +4,7 @@
 @section('breadcrumb', 'Pengajuan Dispensasi Kehadiran')
 
 @section('content')
-<div class="space-y-6" x-data="{
-    rows: {
-        @foreach($requests as $req)
-        {{ $req->id }}: {
-            status: @json($req->status),
-            status_label: @json($req->status_label),
-            isProcessing: false,
-        },
-        @endforeach
-    },
-
-    quickApprove(id, url) {
-        const row = this.rows[id];
-        if (!row || row.isProcessing) return;
-        row.isProcessing = true;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            row.isProcessing = false;
-            if (data.success) {
-                row.status = 'approved';
-                row.status_label = 'Disetujui';
-                window.playAudioFeedback('success');
-                window.showToast(data.message, 'success');
-            } else {
-                window.showToast(data.message || 'Gagal menyetujui', 'error');
-            }
-        })
-        .catch(() => {
-            row.isProcessing = false;
-            window.showToast('Gagal menghubungi server.', 'error');
-        });
-    },
-
-    quickReject(id, url) {
-        if (!confirm('Apakah Anda yakin ingin menolak permohonan ini?')) return;
-        const row = this.rows[id];
-        if (!row || row.isProcessing) return;
-        row.isProcessing = true;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            row.isProcessing = false;
-            if (data.success) {
-                row.status = 'rejected';
-                row.status_label = 'Ditolak';
-                window.playAudioFeedback('error');
-                window.showToast(data.message, 'warning');
-            } else {
-                window.showToast(data.message || 'Gagal menolak', 'error');
-            }
-        })
-        .catch(() => {
-            row.isProcessing = false;
-            window.showToast('Gagal menghubungi server.', 'error');
-        });
-    }
-}">
+<div class="space-y-6" x-data="permissionRequestsPage()">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -227,3 +154,85 @@
 
 </div>
 @endsection
+
+@push('scripts')
+@php
+    $permissionRowsMap = $requests->mapWithKeys(fn ($req) => [
+        $req->id => [
+            'status' => $req->status,
+            'status_label' => $req->status_label,
+            'isProcessing' => false,
+        ],
+    ]);
+@endphp
+<script>
+function permissionRequestsPage() {
+    return {
+        rows: @json($permissionRowsMap),
+
+        quickApprove(id, url) {
+            const row = this.rows[id];
+            if (!row || row.isProcessing) return;
+            row.isProcessing = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                row.isProcessing = false;
+                if (data.success) {
+                    row.status = 'approved';
+                    row.status_label = 'Disetujui';
+                    window.playAudioFeedback('success');
+                    window.showToast(data.message, 'success');
+                } else {
+                    window.showToast(data.message || 'Gagal menyetujui', 'error');
+                }
+            })
+            .catch(() => {
+                row.isProcessing = false;
+                window.showToast('Gagal menghubungi server.', 'error');
+            });
+        },
+
+        quickReject(id, url) {
+            if (!confirm('Apakah Anda yakin ingin menolak permohonan ini?')) return;
+            const row = this.rows[id];
+            if (!row || row.isProcessing) return;
+            row.isProcessing = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                row.isProcessing = false;
+                if (data.success) {
+                    row.status = 'rejected';
+                    row.status_label = 'Ditolak';
+                    window.playAudioFeedback('error');
+                    window.showToast(data.message, 'warning');
+                } else {
+                    window.showToast(data.message || 'Gagal menolak', 'error');
+                }
+            })
+            .catch(() => {
+                row.isProcessing = false;
+                window.showToast('Gagal menghubungi server.', 'error');
+            });
+        }
+    };
+}
+</script>
+@endpush
